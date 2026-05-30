@@ -25,9 +25,9 @@ class Embedder:
         self.model = SentenceTransformer(model_name)
 
     def encode(self, texts: list[str]) -> np.ndarray:
-        return self.model.encode(
-            texts, normalize_embeddings=True, convert_to_numpy=True
-        ).astype(np.float32)
+        return self.model.encode(texts, normalize_embeddings=True, convert_to_numpy=True).astype(
+            np.float32
+        )
 
     def __call__(self, batch: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
         batch["embedding"] = self.encode(list(batch["text"]))
@@ -75,9 +75,7 @@ def main() -> None:
 
     if not ray.is_initialized():
         ray.init()
-    index = build_corpus_index(
-        settings.corpus_path, settings.embed_model, settings.index_path
-    )
+    index = build_corpus_index(settings.corpus_path, settings.embed_model, settings.index_path)
     print(f"built index: {len(index)} chunks -> {settings.index_path}")
 
 

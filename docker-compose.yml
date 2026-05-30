@@ -1,0 +1,19 @@
+# Local Ray cluster: one head + one worker, same image. The head exposes the
+# Ray dashboard (8265) and the Serve HTTP endpoint (8000). Train/serve/eval are
+# run as `docker compose exec ray-head ...` so they join this cluster.
+services:
+  ray-head:
+    build: .
+    shm_size: "2gb"          # Ray's object store needs shared memory
+    env_file: .env           # ANTHROPIC_API_KEY for the generator
+    ports:
+      - "8265:8265"          # Ray dashboard
+      - "8000:8000"          # Ray Serve HTTP
+    command: ray start --head --dashboard-host 0.0.0.0 --port 6379 --block
+
+  ray-worker:
+    build: .
+    shm_size: "2gb"
+    depends_on:
+      - ray-head
+    command: ray start --address=ray-head:6379 --block

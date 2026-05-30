@@ -1,0 +1,21 @@
+{"query": "What is Ray Data used for?", "relevant_docs": ["ray_data.md"]}
+{"query": "How does map_batches avoid reloading the model for every row?", "relevant_docs": ["ray_data.md"]}
+{"query": "How does Ray Data process datasets larger than memory?", "relevant_docs": ["ray_data.md"]}
+{"query": "What does Ray Data partition a dataset into?", "relevant_docs": ["ray_data.md"]}
+{"query": "What is the Trainer abstraction in Ray Train?", "relevant_docs": ["ray_train.md"]}
+{"query": "How does Ray Train handle checkpointing and resuming after failure?", "relevant_docs": ["ray_train.md"]}
+{"query": "How do I scale a single-machine PyTorch training loop with Ray?", "relevant_docs": ["ray_train.md"]}
+{"query": "What does Ray Tune do?", "relevant_docs": ["ray_tune.md"]}
+{"query": "What is the ASHA scheduler and how does early stopping save compute?", "relevant_docs": ["ray_tune.md"]}
+{"query": "How does Ray Tune decide which hyperparameter configurations to try next?", "relevant_docs": ["ray_tune.md"]}
+{"query": "What is a deployment in Ray Serve?", "relevant_docs": ["ray_serve.md"]}
+{"query": "How can Ray Serve scale a heavy model separately from light preprocessing?", "relevant_docs": ["ray_serve.md"]}
+{"query": "How does request batching improve serving throughput?", "relevant_docs": ["ray_serve.md"]}
+{"query": "What is a deployment graph in Ray Serve?", "relevant_docs": ["ray_serve.md"]}
+{"query": "What is retrieval-augmented generation?", "relevant_docs": ["rag_overview.md"]}
+{"query": "Why is a reranking stage used after dense retrieval?", "relevant_docs": ["rag_overview.md"]}
+{"query": "How does a trustworthy RAG system cite its sources?", "relevant_docs": ["rag_overview.md"]}
+{"query": "What are the stages of a RAG pipeline?", "relevant_docs": ["rag_overview.md"]}
+{"query": "Which Ray library composes multiple models into one online application?", "relevant_docs": ["ray_serve.md"]}
+{"query": "Which Ray library runs many training trials in parallel?", "relevant_docs": ["ray_tune.md"]}
+{"query": "How does Ray let the same code run from a laptop to a cluster for training and serving?", "relevant_docs": ["ray_train.md", "ray_serve.md"]}

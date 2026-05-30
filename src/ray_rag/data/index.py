@@ -27,7 +27,7 @@ class VectorIndex:
         return len(self._chunks)
 
     @classmethod
-    def build(cls, embeddings: np.ndarray, chunks: list[dict[str, str]]) -> "VectorIndex":
+    def build(cls, embeddings: np.ndarray, chunks: list[dict[str, str]]) -> VectorIndex:
         import faiss
 
         if embeddings.shape[0] != len(chunks):
@@ -48,7 +48,7 @@ class VectorIndex:
                 fh.write(json.dumps(chunk) + "\n")
 
     @classmethod
-    def load(cls, index_path: str | Path) -> "VectorIndex":
+    def load(cls, index_path: str | Path) -> VectorIndex:
         import faiss
 
         index = faiss.read_index(str(index_path))
@@ -60,16 +60,14 @@ class VectorIndex:
             )
         return cls(index, chunks)
 
-    def search(
-        self, query_embeddings: np.ndarray, top_k: int
-    ) -> list[list[dict[str, object]]]:
+    def search(self, query_embeddings: np.ndarray, top_k: int) -> list[list[dict[str, object]]]:
         """Per query, return up to top_k chunk dicts with their similarity score."""
         scores, ids = self._index.search(query_embeddings.astype(np.float32), top_k)
         results: list[list[dict[str, object]]] = []
-        for row_scores, row_ids in zip(scores, ids):
+        for row_scores, row_ids in zip(scores, ids, strict=True):
             hits = [
                 {**self._chunks[i], "score": float(s)}
-                for s, i in zip(row_scores, row_ids)
+                for s, i in zip(row_scores, row_ids, strict=True)
                 if i != -1
             ]
             results.append(hits)

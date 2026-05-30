@@ -14,6 +14,7 @@ dependencies = [
     "torch>=2.2",
     "transformers>=4.42",
     "scikit-learn>=1.4",
+    "xgboost>=2.0",
     "anthropic>=0.40",
     "pydantic>=2.7",
     "pydantic-settings>=2.3",
@@ -46,6 +47,12 @@ select = ["E", "F", "I", "UP", "B"]
 python_version = "3.10"
 ignore_missing_imports = true
 warn_unused_ignores = true
+
+# Ray Serve's @serve.deployment makes `.bind()` a dynamic attribute mypy can't
+# see on the decorated class; scope the suppression to the binding module only.
+[[tool.mypy.overrides]]
+module = "ray_rag.serve.app"
+disable_error_code = ["attr-defined"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -8,9 +8,9 @@ reranker and LLM ever see), so it must fail a test, not slip through.
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Iterator
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterator
 
 _TEXT_SUFFIXES = {".txt", ".md"}
 
@@ -65,9 +65,7 @@ def _chunk_id(doc_id: str, index: int, text: str) -> str:
     return f"{doc_id}#{index}-{digest}"
 
 
-def build_chunks(
-    corpus_path: str | Path, chunk_size: int = 200, overlap: int = 40
-) -> list[Chunk]:
+def build_chunks(corpus_path: str | Path, chunk_size: int = 200, overlap: int = 40) -> list[Chunk]:
     """Load every document and flatten into stable-id chunks."""
     chunks: list[Chunk] = []
     for doc_id, source, text in load_documents(corpus_path):

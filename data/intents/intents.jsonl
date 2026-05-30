@@ -1,0 +1,45 @@
+{"query": "What is a deployment in Ray Serve?", "intent": "factual"}
+{"query": "How does Ray Train handle checkpointing?", "intent": "factual"}
+{"query": "What does the ASHA scheduler do?", "intent": "factual"}
+{"query": "What is map_batches used for?", "intent": "factual"}
+{"query": "Which Ray library runs hyperparameter search?", "intent": "factual"}
+{"query": "What is a vector index in RAG?", "intent": "factual"}
+{"query": "How does request batching work in Ray Serve?", "intent": "factual"}
+{"query": "What is the Trainer in Ray Train?", "intent": "factual"}
+{"query": "What does Ray Data partition data into?", "intent": "factual"}
+{"query": "Why use a cross-encoder reranker?", "intent": "factual"}
+{"query": "What communication backend does Ray Train use?", "intent": "factual"}
+{"query": "What is a search space in Ray Tune?", "intent": "factual"}
+{"query": "How does Ray Serve expose an HTTP endpoint?", "intent": "factual"}
+{"query": "What is a Dataset in Ray Data?", "intent": "factual"}
+{"query": "How are documents prepared for retrieval in RAG?", "intent": "factual"}
+{"query": "Summarize how Ray Serve works.", "intent": "summarize"}
+{"query": "Give me an overview of Ray Tune.", "intent": "summarize"}
+{"query": "Explain the RAG architecture at a high level.", "intent": "summarize"}
+{"query": "Summarize the stages of a RAG pipeline.", "intent": "summarize"}
+{"query": "Provide a high-level summary of Ray Train.", "intent": "summarize"}
+{"query": "Walk me through what Ray Data does overall.", "intent": "summarize"}
+{"query": "Give an overview of how reranking fits into RAG.", "intent": "summarize"}
+{"query": "Summarize the role of schedulers in hyperparameter tuning.", "intent": "summarize"}
+{"query": "Explain in general terms how Ray scales from laptop to cluster.", "intent": "summarize"}
+{"query": "Summarize how Ray Serve composes multiple models.", "intent": "summarize"}
+{"query": "Give a broad overview of distributed training in Ray.", "intent": "summarize"}
+{"query": "Summarize how batch inference works in Ray Data.", "intent": "summarize"}
+{"query": "Explain the overall idea behind retrieval-augmented generation.", "intent": "summarize"}
+{"query": "Provide a summary of how Ray Tune finds good configurations.", "intent": "summarize"}
+{"query": "Give me the big picture of the Ray ecosystem for machine learning.", "intent": "summarize"}
+{"query": "What's the weather in London today?", "intent": "out_of_scope"}
+{"query": "Who won the World Cup in 2018?", "intent": "out_of_scope"}
+{"query": "Write me a poem about the ocean.", "intent": "out_of_scope"}
+{"query": "What's a good recipe for lasagna?", "intent": "out_of_scope"}
+{"query": "Tell me a joke.", "intent": "out_of_scope"}
+{"query": "What is the capital of Australia?", "intent": "out_of_scope"}
+{"query": "How do I change a flat tyre?", "intent": "out_of_scope"}
+{"query": "What's the current stock price of Apple?", "intent": "out_of_scope"}
+{"query": "Translate 'good morning' into French.", "intent": "out_of_scope"}
+{"query": "What movies are playing this weekend?", "intent": "out_of_scope"}
+{"query": "How tall is Mount Everest?", "intent": "out_of_scope"}
+{"query": "Recommend a good science fiction novel.", "intent": "out_of_scope"}
+{"query": "What's the best way to learn the guitar?", "intent": "out_of_scope"}
+{"query": "Who painted the Mona Lisa?", "intent": "out_of_scope"}
+{"query": "What time zone is New York in?", "intent": "out_of_scope"}

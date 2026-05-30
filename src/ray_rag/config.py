@@ -12,17 +12,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="RAYRAG_", env_file=".env", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_prefix="RAYRAG_", env_file=".env", extra="ignore")
 
     # --- GenAI generation (happy path). Key read separately, unprefixed. ---
     llm_model: str = "claude-opus-4-8"
 
     # --- Retrieval / models ---
     embed_model: str = "BAAI/bge-small-en-v1.5"
-    reranker_path: str = "artifacts/reranker"
-    intent_path: str = "artifacts/intent_clf"
+    reranker_path: str = "artifacts/reranker.json"
+    intent_path: str = "artifacts/intent_clf.joblib"
     index_path: str = "artifacts/index.faiss"
 
     # --- Retrieval depths ---
@@ -32,6 +30,7 @@ class Settings(BaseSettings):
     # --- Data ---
     corpus_path: str = "data/corpus"
     eval_path: str = "data/eval/relevance.jsonl"
+    intents_path: str = "data/intents/intents.jsonl"
 
 
 settings = Settings()

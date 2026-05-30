@@ -1,0 +1,42 @@
+# --- Secrets / env (Hard Rule 7) ---
+.env
+*.key
+*.pem
+
+# --- Internal / workspace-only docs + tooling (Hard Rule 3; identity guard also Rule 1) ---
+CLAUDE.md
+claude_md_rules.txt
+.claude/
+scripts/identity_check.sh
+docs/decisions.md
+docs/progress.md
+docs/USER_GUIDE.md
+promo/
+
+# --- Model weights, indexes, large artifacts ---
+*.bin
+*.safetensors
+*.pt
+*.faiss
+*.index
+artifacts/
+checkpoints/
+mlruns/
+
+# --- Ray / runtime ---
+/tmp/ray/
+ray_results/
+*.log
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env.local
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/

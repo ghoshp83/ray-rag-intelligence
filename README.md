@@ -18,7 +18,7 @@ where errors come from and can't be measured. This project takes the opposite,
 | Job | Owner | How it's measured |
 |-----|-------|-------------------|
 | Embed & retrieve candidates | Embedding model + vector index | recall@k |
-| **Rank the evidence** | **Trained cross-encoder reranker** | **nDCG@k / MRR** |
+| **Rank the evidence** | **Trained learning-to-rank model (XGBoost)** | **nDCG@k / MRR** |
 | **Route the query** (factual / summarise / out-of-scope) | **Trained intent classifier** | **accuracy / macro-F1** |
 | Write the grounded answer | LLM (Claude) | citation-faithfulness score |
 
@@ -29,11 +29,11 @@ evidence into fluent, **cited** language. It never ranks or routes.
 
 ```mermaid
 flowchart LR
-    subgraph Offline["Offline — Ray Data + Ray Train/Tune"]
+    subgraph Offline["Offline — Ray Data + Ray Tune"]
         C[Document corpus] -->|chunk + embed| E[Embeddings]
         E --> IDX[(Vector index)]
-        L[Labelled relevance set] -->|Ray Train + Ray Tune| RR[Reranker]
-        L2[Labelled queries] -->|Ray Train + Ray Tune| IC[Intent classifier]
+        L[Labelled relevance set] -->|Ray Tune HPO| RR[Reranker]
+        L2[Labelled queries] -->|Ray Tune HPO| IC[Intent classifier]
     end
 
     subgraph Online["Online — Ray Serve deployment graph"]
@@ -49,9 +49,10 @@ flowchart LR
     end
 ```
 
-**Ray, end to end:** Ray Data (parallel embed) → Ray Train + Ray Tune (train &
-tune both models) → Ray Serve (the online `retrieve → rerank → route → generate`
-deployment graph).
+**Ray, end to end:** Ray Data (parallel embed) → Ray Tune (parallel HPO for both
+models) → Ray Serve (the online `retrieve → rerank → route → generate`
+deployment graph). Ray Train's distributed-trainer path is documented as the
+scale-out target (`deploy/`), not used at this data scale — see the disclaimer.
 
 ## Run it locally
 
@@ -76,8 +77,9 @@ See [RUNBOOK.md](RUNBOOK.md) for startup order and failure handling.
 - **Ray** gives one programming model across data, training, tuning, and serving
   — the same code runs on a laptop or a cluster, which is the whole portability
   story.
-- **Cross-encoder reranker + intent classifier** are real trained models that
-  own measurable prediction, keeping the AI honest.
+- **A learning-to-rank reranker (XGBoost) + an intent classifier** are real
+  trained models that own measurable prediction, keeping the AI honest. The
+  cross-encoder is used only as one ranking *feature*, not as the ranker.
 - **Claude API** does the one thing an LLM should here: grounded generation.
 
 ## Results (sample corpus)
@@ -104,6 +106,10 @@ ordering the LLM reads, over dense retrieval alone.
   running.** Treat them as the production scale-out story, not a live endpoint.
 - Eval sets shipped here are **illustrative-scale**, sized to run quickly and
   reproducibly — not production-scale benchmarks.
+- **Ray Train's distributed-trainer path is documented, not used at this scale.**
+  At illustrative CPU scale, Ray Tune-driven HPO is the honest fit; Ray Train is
+  the documented scale-out for larger data, where data-parallel training earns its
+  place. Using it here would add complexity without benefit.
 
 ## License
 

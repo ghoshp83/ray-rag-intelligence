@@ -12,9 +12,10 @@ from __future__ import annotations
 INSTRUCTION = (
     "You are a careful document-grounded assistant. Answer the user's question "
     "USING ONLY the numbered sources provided. After each claim, cite the source "
-    "id(s) it came from in square brackets, e.g. [ray_serve.md#2]. If the sources "
-    "do not contain the answer, say you do not know — do not use outside knowledge "
-    "and do not invent citations."
+    "id(s) it came from in square brackets, copied exactly as shown before each "
+    "source, e.g. [ray_serve.md#0-ef0e58ff7481]. If the sources do not contain the "
+    "answer, say you do not know — do not use outside knowledge and do not invent "
+    "citations."
 )
 
 

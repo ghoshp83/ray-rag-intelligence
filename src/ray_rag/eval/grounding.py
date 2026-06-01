@@ -11,11 +11,15 @@ from __future__ import annotations
 
 import re
 
-_CITATION = re.compile(r"\[([^\]\s]+#\d+)\]")
+# Chunk ids are `doc#idx-hash` (see data/chunk.py), so a citation looks like
+# `[ray_serve.md#0-96161c49338c]`. Match any bracketed `token#token` with no
+# whitespace, then let membership in the provided ids judge validity — a
+# malformed near-citation (e.g. the hash dropped) is extracted but counts invalid.
+_CITATION = re.compile(r"\[([^\[\]\s]+#[^\[\]\s]+)\]")
 
 
 def extract_citations(answer: str) -> list[str]:
-    """Pull `[doc#idx]`-style citation ids from an answer, in order."""
+    """Pull `[doc#idx-hash]`-style citation ids from an answer, in order."""
     return _CITATION.findall(answer)
 
 

@@ -35,7 +35,7 @@ def main() -> None:
         index = build_corpus_index(settings.corpus_path, settings.embed_model, settings.index_path)
     embedder = Embedder(settings.embed_model)
 
-    rr = train_reranker(index, embedder, load_jsonl(settings.eval_path), settings.reranker_path)
+    rr = train_reranker(index, embedder, load_jsonl(settings.eval_train_path), settings.reranker_path)
     ic = train_intent(load_jsonl(settings.intents_path), embedder, settings.intent_path)
 
     print(f"reranker: val_nDCG@5={rr['val_ndcg']:.3f}  -> {settings.reranker_path}")

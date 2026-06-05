@@ -1,6 +1,7 @@
 """Evaluation harness: the quantitative verification for the whole system.
 
-Reports (1) reranker nDCG@k / MRR *uplift over dense-only retrieval* — the
+Reports (1) reranker nDCG@k / MRR *uplift over dense-only retrieval* on a
+held-out test set (disjoint from the queries the ranker trained on) — the
 number that justifies training a ranker at all; (2) a held-out intent macro-F1
 (re-fit on a train split so the figure is honest generalisation, not training
 accuracy); (3) citation-grounding faithfulness over in-scope queries — skipped

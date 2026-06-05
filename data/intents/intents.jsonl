@@ -13,6 +13,16 @@
 {"query": "How does Ray Serve expose an HTTP endpoint?", "intent": "factual"}
 {"query": "What is a Dataset in Ray Data?", "intent": "factual"}
 {"query": "How are documents prepared for retrieval in RAG?", "intent": "factual"}
+{"query": "What is an actor in Ray Core?", "intent": "factual"}
+{"query": "What does the Ray object store hold?", "intent": "factual"}
+{"query": "Why are embedding vectors normalised to unit length?", "intent": "factual"}
+{"query": "What is cosine similarity between two embeddings?", "intent": "factual"}
+{"query": "What is a flat index in FAISS?", "intent": "factual"}
+{"query": "What does recall at k measure?", "intent": "factual"}
+{"query": "What features does a learned-to-rank reranker use?", "intent": "factual"}
+{"query": "How is citation faithfulness scored?", "intent": "factual"}
+{"query": "What is a task in Ray Core?", "intent": "factual"}
+{"query": "How does an inner-product index rank results?", "intent": "factual"}
 {"query": "Summarize how Ray Serve works.", "intent": "summarize"}
 {"query": "Give me an overview of Ray Tune.", "intent": "summarize"}
 {"query": "Explain the RAG architecture at a high level.", "intent": "summarize"}
@@ -28,6 +38,16 @@
 {"query": "Explain the overall idea behind retrieval-augmented generation.", "intent": "summarize"}
 {"query": "Provide a summary of how Ray Tune finds good configurations.", "intent": "summarize"}
 {"query": "Give me the big picture of the Ray ecosystem for machine learning.", "intent": "summarize"}
+{"query": "Summarize how Ray Core schedules distributed work.", "intent": "summarize"}
+{"query": "Give an overview of how text embeddings represent meaning.", "intent": "summarize"}
+{"query": "Explain at a high level how vector search finds nearest neighbours.", "intent": "summarize"}
+{"query": "Summarize why reranking improves a RAG pipeline.", "intent": "summarize"}
+{"query": "Give a broad overview of grounded generation with citations.", "intent": "summarize"}
+{"query": "Walk me through how Ray's libraries fit together.", "intent": "summarize"}
+{"query": "Summarize the role of the object store in Ray.", "intent": "summarize"}
+{"query": "Explain in general terms how FAISS indexes vectors.", "intent": "summarize"}
+{"query": "Provide a high-level summary of how rerankers are trained.", "intent": "summarize"}
+{"query": "Give me the big picture of how a RAG system avoids hallucination.", "intent": "summarize"}
 {"query": "What's the weather in London today?", "intent": "out_of_scope"}
 {"query": "Who won the World Cup in 2018?", "intent": "out_of_scope"}
 {"query": "Write me a poem about the ocean.", "intent": "out_of_scope"}
@@ -43,3 +63,13 @@
 {"query": "What's the best way to learn the guitar?", "intent": "out_of_scope"}
 {"query": "Who painted the Mona Lisa?", "intent": "out_of_scope"}
 {"query": "What time zone is New York in?", "intent": "out_of_scope"}
+{"query": "What's the best restaurant in Paris?", "intent": "out_of_scope"}
+{"query": "How do I bake sourdough bread?", "intent": "out_of_scope"}
+{"query": "Who is the current president of France?", "intent": "out_of_scope"}
+{"query": "What was the score of last night's basketball game?", "intent": "out_of_scope"}
+{"query": "Convert 100 dollars to euros.", "intent": "out_of_scope"}
+{"query": "What is the population of Tokyo?", "intent": "out_of_scope"}
+{"query": "Suggest a workout routine for beginners.", "intent": "out_of_scope"}
+{"query": "What's the plot of Hamlet?", "intent": "out_of_scope"}
+{"query": "How far is the moon from Earth?", "intent": "out_of_scope"}
+{"query": "What's a good gift for a five-year-old?", "intent": "out_of_scope"}

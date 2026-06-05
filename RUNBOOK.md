@@ -24,7 +24,7 @@ Ray dashboard: http://localhost:8265.
 | `/ask` returns the out-of-scope refusal for a valid question | intent classifier misrouted | Inspect with `make eval` (intent F1); add labelled examples to `data/intents/intents.jsonl` and retrain. |
 | Generation errors / 401 | `ANTHROPIC_API_KEY` unset or invalid | Set it in `.env` (never commit it). The generator fails loud rather than returning an ungrounded answer. |
 | Empty / irrelevant answers | retrieval miss or weak reranking | Check `make eval` nDCG uplift; raise `RAYRAG_RETRIEVE_TOP_K`; confirm the corpus actually covers the question. |
-| Reranker training raises "need >=2 labelled queries" | too few rows in `relevance.jsonl` | Add labelled queries; each must retrieve at least one candidate. |
+| Reranker training raises "need >=2 labelled queries" | too few rows in `data/eval/relevance_train.jsonl` | Add labelled queries; each must retrieve at least one candidate. |
 | Tune trials all fail | dependency/version mismatch in the cluster env | Rebuild the image (`make up`); check `pyproject.toml` pins. |
 
 ## Re-runs are safe

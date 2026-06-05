@@ -1,0 +1,18 @@
+{"query": "Can Ray Data handle a dataset bigger than one machine's memory?", "relevant_docs": ["ray_data.md"]}
+{"query": "How does a stateful callable amortise model loading in batch inference?", "relevant_docs": ["ray_data.md"]}
+{"query": "How can I resume training after a worker fails?", "relevant_docs": ["ray_train.md"]}
+{"query": "What abstraction does Ray Train give for distributed training?", "relevant_docs": ["ray_train.md"]}
+{"query": "How does early stopping during tuning save compute?", "relevant_docs": ["ray_tune.md"]}
+{"query": "What would I use to search hyperparameter configurations in parallel?", "relevant_docs": ["ray_tune.md"]}
+{"query": "How do I give a heavy model more replicas than the preprocessing step?", "relevant_docs": ["ray_serve.md"]}
+{"query": "How are several deployments wired into one application?", "relevant_docs": ["ray_serve.md"]}
+{"query": "Why does a RAG system add a reranking step after retrieval?", "relevant_docs": ["rag_overview.md", "reranking.md"]}
+{"query": "How does a trustworthy RAG system cite its sources?", "relevant_docs": ["rag_overview.md", "grounding.md"]}
+{"query": "What are the two core primitives Ray provides?", "relevant_docs": ["ray_core.md"]}
+{"query": "Why are embeddings normalised before computing similarity?", "relevant_docs": ["embeddings.md"]}
+{"query": "When is an exact flat index preferable to an approximate one?", "relevant_docs": ["vector_search.md"]}
+{"query": "What is the cross-encoder's role among the reranking features?", "relevant_docs": ["reranking.md"]}
+{"query": "How do you turn grounding into a measurable score?", "relevant_docs": ["grounding.md"]}
+{"query": "What should happen when a question is outside the corpus scope?", "relevant_docs": ["grounding.md"]}
+{"query": "Which stage owns ranking quality, the trained model or the LLM?", "relevant_docs": ["reranking.md"]}
+{"query": "What keeps generated answers from hallucinating unsupported claims?", "relevant_docs": ["grounding.md"]}

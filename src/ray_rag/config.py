@@ -29,7 +29,10 @@ class Settings(BaseSettings):
 
     # --- Data ---
     corpus_path: str = "data/corpus"
-    eval_path: str = "data/eval/relevance.jsonl"
+    # Reranker labels are split so the headline nDCG/MRR is held-out, not a
+    # train-set number: train_path tunes+fits the ranker, eval_path is unseen.
+    eval_train_path: str = "data/eval/relevance_train.jsonl"
+    eval_path: str = "data/eval/relevance_test.jsonl"
     intents_path: str = "data/intents/intents.jsonl"
 
 

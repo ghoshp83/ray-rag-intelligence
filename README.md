@@ -85,16 +85,23 @@ See [RUNBOOK.md](RUNBOOK.md) for startup order and failure handling.
 ## Results (sample corpus)
 
 Measured by `make eval` on the bundled illustrative corpus — small by design, so
-read these as a working signal, not a benchmark:
+read these as a working signal, not a benchmark. The reranker is trained on
+`data/eval/relevance_train.jsonl` and scored on a **disjoint** held-out test set
+(`relevance_test.jsonl`), so these are generalisation numbers, not training fit:
 
-| Metric | Value |
-|--------|-------|
-| Retrieval nDCG@5 — dense-only → **learned rerank** | 0.885 → **0.980** |
-| Retrieval MRR — dense-only → learned rerank | 0.914 → **1.000** |
-| Intent classifier — held-out macro-F1 | **0.926** |
+| Metric (held-out test) | dense-only | learned rerank |
+|--------|--------|--------|
+| Retrieval nDCG@5 | 0.879 | 0.854 |
+| Retrieval MRR | 0.944 | 0.944 |
+| Intent classifier — macro-F1 (n=23) | — | 0.774 |
 
-The reranker uplift is the point: a model we train measurably improves the
-ordering the LLM reads, over dense retrieval alone.
+Read honestly: on a corpus this small, dense retrieval is already near-ceiling
+(MRR 0.94), leaving almost no headroom — so the learned reranker reaches
+**held-out parity**, not uplift, and nDCG dips within noise. The deliverable here
+is the *methodology*: a reranker we train ourselves, measured on unseen queries
+with nDCG/MRR, so its quality is a number that moves with training rather than a
+black box. Demonstrating uplift needs a larger, noisier corpus where dense leaves
+room to improve — called out under the disclaimer below.
 
 ## Honest disclaimer
 
@@ -106,6 +113,11 @@ ordering the LLM reads, over dense retrieval alone.
   running.** Treat them as the production scale-out story, not a live endpoint.
 - Eval sets shipped here are **illustrative-scale**, sized to run quickly and
   reproducibly — not production-scale benchmarks.
+- **The reranker reaches held-out parity with dense retrieval on this corpus, not
+  uplift.** The corpus is small and clean enough that dense retrieval is already
+  near-ceiling, so there is little for a reranker to add. The trained ranker and
+  its held-out nDCG/MRR evaluation are the portfolio point; showing measurable
+  uplift needs a larger, noisier corpus with more labelled relevance.
 - **Ray Train's distributed-trainer path is documented, not used at this scale.**
   At illustrative CPU scale, Ray Tune-driven HPO is the honest fit; Ray Train is
   the documented scale-out for larger data, where data-parallel training earns its

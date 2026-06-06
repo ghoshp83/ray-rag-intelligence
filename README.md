@@ -91,13 +91,16 @@ read these as a working signal, not a benchmark. The reranker is trained on
 
 | Metric (held-out test) | dense-only | learned rerank |
 |--------|--------|--------|
+| Retrieval recall@5 | 1.000 | 1.000 |
 | Retrieval nDCG@5 | 0.879 | 0.854 |
 | Retrieval MRR | 0.944 | 0.944 |
 | Intent classifier — macro-F1 (n=23) | — | 0.774 |
 
-Read honestly: on a corpus this small, dense retrieval is already near-ceiling
-(MRR 0.94), leaving almost no headroom — so the learned reranker reaches
-**held-out parity**, not uplift, and nDCG dips within noise. The deliverable here
+Read honestly: on a corpus this small, dense retrieval is already near-ceiling —
+**recall@5 is 1.000**, so every relevant document is already in the top 5 and the
+reranker has nothing left to *recover*, only to reorder (MRR 0.94). So the learned
+reranker reaches **held-out parity**, not uplift, and nDCG dips within noise. The
+deliverable here
 is the *methodology*: a reranker we train ourselves, measured on unseen queries
 with nDCG/MRR, so its quality is a number that moves with training rather than a
 black box. Demonstrating uplift needs a larger, noisier corpus where dense leaves

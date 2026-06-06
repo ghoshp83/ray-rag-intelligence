@@ -29,3 +29,16 @@ def mrr(ranked_relevances: list[float]) -> float:
         if rel > 0:
             return 1.0 / (i + 1)
     return 0.0
+
+
+def recall_at_k(ranked_doc_ids: list[str], relevant: set[str], k: int) -> float:
+    """Fraction of relevant docs present in the top-k retrieved doc ids.
+
+    Operates on doc ids (not chunks) and dedupes, so multiple retrieved chunks of
+    one document count once: this measures whether retrieval surfaced the right
+    *documents* — the candidate recall the reranker can only reorder, never
+    recover. Returns 0.0 when nothing is relevant (vacuous recall).
+    """
+    if not relevant:
+        return 0.0
+    return len(set(ranked_doc_ids[:k]) & relevant) / len(relevant)

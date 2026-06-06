@@ -1,8 +1,9 @@
 """Evaluation harness: the quantitative verification for the whole system.
 
-Reports (1) reranker nDCG@k / MRR *uplift over dense-only retrieval* on a
-held-out test set (disjoint from the queries the ranker trained on) — the
-number that justifies training a ranker at all; (2) a held-out intent macro-F1
+Reports (1) retrieval recall@k plus reranker nDCG@k / MRR vs dense-only retrieval
+on a held-out test set (disjoint from the queries the ranker trained on) — recall
+shows whether retrieval surfaced the right docs at all, nDCG/MRR whether the ranker
+ordered them better; (2) a held-out intent macro-F1
 (re-fit on a train split so the figure is honest generalisation, not training
 accuracy); (3) citation-grounding faithfulness over in-scope queries — skipped
 unless ANTHROPIC_API_KEY is set, and that skip is stated, never silent.
@@ -20,7 +21,7 @@ from ray_rag.config import settings
 from ray_rag.data.embed import Embedder
 from ray_rag.data.index import VectorIndex
 from ray_rag.eval.grounding import grounding_score
-from ray_rag.eval.metrics import mrr, ndcg_at_k
+from ray_rag.eval.metrics import mrr, ndcg_at_k, recall_at_k
 from ray_rag.models.reranker import Reranker
 from ray_rag.models.train import load_jsonl
 
@@ -30,7 +31,8 @@ def _labels(candidates: list[dict], relevant: set[str]) -> list[float]:
 
 
 def evaluate_reranker(index, embedder, reranker, labelled, k) -> dict:
-    dense_ndcg, dense_mrr, rr_ndcg, rr_mrr = [], [], [], []
+    dense_ndcg, dense_mrr, dense_recall = [], [], []
+    rr_ndcg, rr_mrr, rr_recall = [], [], []
     for ex in labelled:
         relevant = set(ex["relevant_docs"])
         candidates = index.search(embedder.encode([ex["query"]]), settings.retrieve_top_k)[0]
@@ -38,14 +40,18 @@ def evaluate_reranker(index, embedder, reranker, labelled, k) -> dict:
             continue
         dense_ndcg.append(ndcg_at_k(_labels(candidates, relevant), k))
         dense_mrr.append(mrr(_labels(candidates, relevant)))
+        dense_recall.append(recall_at_k([c["doc_id"] for c in candidates], relevant, k))
         reranked = reranker.rerank(ex["query"], candidates, len(candidates))
         rr_ndcg.append(ndcg_at_k(_labels(reranked, relevant), k))
         rr_mrr.append(mrr(_labels(reranked, relevant)))
+        rr_recall.append(recall_at_k([c["doc_id"] for c in reranked], relevant, k))
     return {
         "dense_ndcg": float(np.mean(dense_ndcg)),
         "reranked_ndcg": float(np.mean(rr_ndcg)),
         "dense_mrr": float(np.mean(dense_mrr)),
         "reranked_mrr": float(np.mean(rr_mrr)),
+        "dense_recall": float(np.mean(dense_recall)),
+        "reranked_recall": float(np.mean(rr_recall)),
     }
 
 
@@ -96,6 +102,10 @@ def main() -> None:
         f"reranker  nDCG@{settings.rerank_top_k}: dense={rr['dense_ndcg']:.3f} -> "
         f"reranked={rr['reranked_ndcg']:.3f}  "
         f"(MRR {rr['dense_mrr']:.3f} -> {rr['reranked_mrr']:.3f})"
+    )
+    print(
+        f"retrieval recall@{settings.rerank_top_k}: dense={rr['dense_recall']:.3f} -> "
+        f"reranked={rr['reranked_recall']:.3f}"
     )
     ic = evaluate_intent(load_jsonl(settings.intents_path), embedder)
     print(

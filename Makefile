@@ -1,4 +1,4 @@
-.PHONY: install lint typecheck test ingest train eval serve up down
+.PHONY: install lint typecheck test ingest train eval bench serve up down
 
 install:  ## install package + dev tooling
 	pip install -e ".[dev]"
@@ -19,8 +19,11 @@ ingest:   ## build the vector index from the corpus (Ray Data)
 train:    ## train + tune the reranker and intent classifier (Ray Tune)
 	python -m ray_rag.models.train
 
-eval:     ## print nDCG/MRR uplift, intent F1, and grounding score
+eval:     ## print recall@k, nDCG/MRR, intent F1, and grounding score
 	python -m ray_rag.eval.harness
+
+bench:    ## measure Ray Data embedding throughput (chunks/sec)
+	python scripts/measure_throughput.py
 
 serve:    ## run the Ray Serve deployment graph on :8000
 	serve run ray_rag.serve.app:app

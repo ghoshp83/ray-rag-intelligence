@@ -19,9 +19,17 @@ from ray_rag.data.index import VectorIndex
 class Embedder:
     """Encodes text to L2-normalised vectors (so inner product == cosine)."""
 
-    def __init__(self, model_name: str):
+    def __init__(self, model_name: str, num_threads: int | None = None):
         from sentence_transformers import SentenceTransformer
 
+        # Bound this actor's torch threads so a pool of actors fans out across
+        # CPUs instead of each one grabbing every core and thrashing. Only set
+        # inside the Ray actor pool (where num_threads is passed); left default
+        # for direct in-process use (serve/eval query embedding).
+        if num_threads is not None:
+            import torch
+
+            torch.set_num_threads(num_threads)
         self.model = SentenceTransformer(model_name)
 
     def encode(self, texts: list[str]) -> np.ndarray:
@@ -43,12 +51,23 @@ def embed_chunks(
     """Run chunks through Ray Data; return (embeddings, chunk-metadata) aligned by row."""
     if not chunks:
         raise ValueError("no chunks to embed — is the corpus empty?")
-    ds = ray.data.from_items([c.as_dict() for c in chunks])
+    # from_items packs everything into one block by default, which pins the
+    # whole pass to a single actor (1 CPU) however high `concurrency` is. Split
+    # into at least `concurrency` blocks so the actor pool actually fans out
+    # across cluster CPUs — that fan-out is the parallel-batch-inference showcase.
+    blocks = min(concurrency, len(chunks))
+    # Give each actor a slice of the cores (threads × concurrency ≈ cluster CPUs)
+    # and reserve that many CPUs per actor, so the pool parallelises instead of
+    # every actor's torch grabbing all cores and thrashing (oversubscription).
+    total_cpus = int(ray.cluster_resources().get("CPU", concurrency))
+    threads = max(1, total_cpus // concurrency)
+    ds = ray.data.from_items([c.as_dict() for c in chunks], override_num_blocks=blocks)
     ds = ds.map_batches(
         Embedder,
-        fn_constructor_kwargs={"model_name": model_name},
+        fn_constructor_kwargs={"model_name": model_name, "num_threads": threads},
         batch_size=batch_size,
         concurrency=concurrency,
+        num_cpus=threads,
     )
     rows = ds.take_all()
     embeddings = np.vstack([r.pop("embedding") for r in rows]).astype(np.float32)

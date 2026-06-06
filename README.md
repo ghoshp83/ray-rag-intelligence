@@ -106,6 +106,24 @@ with nDCG/MRR, so its quality is a number that moves with training rather than a
 black box. Demonstrating uplift needs a larger, noisier corpus where dense leaves
 room to improve — called out under the disclaimer below.
 
+## Operational characteristics
+
+The embedding pass is the parallel-batch-inference showcase — Ray Data fans the
+corpus across an actor pool, each actor holding one copy of the model. Measured by
+`make bench` on the reference CPU box (no GPU):
+
+| Stage | Measurement | Reference box |
+|-------|-------------|---------------|
+| Embedding (Ray Data) | throughput, `bge-small`, 200-token chunks | **~18 chunks/sec across 4 actors / 20 CPUs** |
+
+The dataset is split into one block per actor and each actor's torch threads are
+bounded to a slice of the cores (`threads × concurrency ≈ cluster CPUs`), so the
+pool genuinely fans out (20 of 22 CPUs engaged) instead of one actor's threads
+thrashing all cores. The *same code* adds capacity as the cluster grows — more
+actors, more nodes — which is where the throughput scales for a real corpus; this
+small model on short sequences is bandwidth-bound, so the local win over a single
+actor is modest by design.
+
 ## Honest disclaimer
 
 - **Generation uses an external LLM API (Anthropic Claude)** on the happy path,

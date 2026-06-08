@@ -1,4 +1,4 @@
-.PHONY: install lint typecheck test ingest train eval bench serve up down
+.PHONY: install lint typecheck test ingest train eval bench latency serve up down
 
 install:  ## install package + dev tooling
 	pip install -e ".[dev]"
@@ -24,6 +24,9 @@ eval:     ## print recall@k, nDCG/MRR, intent F1, and grounding score
 
 bench:    ## measure Ray Data embedding throughput (chunks/sec)
 	python scripts/measure_throughput.py
+
+latency:  ## measure request-path latency per stage (route/retrieve/rerank)
+	python scripts/measure_latency.py
 
 serve:    ## run the Ray Serve deployment graph on :8000
 	serve run ray_rag.serve.app:app

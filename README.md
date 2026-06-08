@@ -124,6 +124,23 @@ actors, more nodes — which is where the throughput scales for a real corpus; t
 small model on short sequences is bandwidth-bound, so the local win over a single
 actor is modest by design.
 
+The online request path is timed per stage by `make latency` (the trained-ML
+`route → retrieve → rerank` stages, in the order the Serve ingress runs them):
+
+| Stage | p50 | p95 | What it does |
+|-------|-----|-----|--------------|
+| route | ~20 ms | ~46 ms | intent classify (embed + logistic regression) |
+| retrieve | ~28 ms | ~50 ms | embed query + FAISS top-50 search |
+| **rerank** | **~1180 ms** | **~1410 ms** | learned-to-rank over 50 candidates |
+| total | ~1230 ms | ~1470 ms | route + retrieve + rerank |
+
+Reranking dominates: its cross-encoder *feature* scores all 50 retrieved
+candidates as query–passage pairs on CPU, which is the cost. That is the honest
+shape of the trade-off — the cross-encoder buys ranking signal at a latency price,
+and it is exactly the stage the documented GPU scale-out (`deploy/`) targets. The
+`generate` stage is excluded from these numbers on purpose: it is a network call
+to the external LLM API, so its latency is the provider's, not this graph's.
+
 ## Honest disclaimer
 
 - **Generation uses an external LLM API (Anthropic Claude)** on the happy path,

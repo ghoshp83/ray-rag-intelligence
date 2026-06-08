@@ -24,6 +24,7 @@ from ray_rag.eval.grounding import grounding_score
 from ray_rag.eval.metrics import mrr, ndcg_at_k, recall_at_k
 from ray_rag.models.reranker import Reranker
 from ray_rag.models.train import load_jsonl
+from ray_rag.observability import log_event
 
 
 def _labels(candidates: list[dict], relevant: set[str]) -> list[float]:
@@ -107,11 +108,13 @@ def main() -> None:
         f"retrieval recall@{settings.rerank_top_k}: dense={rr['dense_recall']:.3f} -> "
         f"reranked={rr['reranked_recall']:.3f}"
     )
+    log_event("eval", "reranker", **rr)
     ic = evaluate_intent(load_jsonl(settings.intents_path), embedder)
     print(
         f"intent    holdout macro-F1={ic['holdout_macro_f1']:.3f}  "
         f"acc={ic['holdout_accuracy']:.3f}  (n={ic['n_test']})"
     )
+    log_event("eval", "intent", **ic)
 
     if os.environ.get("ANTHROPIC_API_KEY"):
         g = evaluate_grounding(index, embedder, reranker, labelled)
@@ -119,8 +122,10 @@ def main() -> None:
             f"grounding valid-citation fraction={g['mean_valid_citation_fraction']:.3f}  "
             f"answers-with-citation={g['answers_with_citation']:.3f}  (n={g['n_queries']})"
         )
+        log_event("eval", "grounding", **g)
     else:
         print("grounding SKIPPED: ANTHROPIC_API_KEY not set (generation eval needs the LLM API).")
+        log_event("eval", "grounding_skipped", reason="ANTHROPIC_API_KEY not set")
 
 
 if __name__ == "__main__":

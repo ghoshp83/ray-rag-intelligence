@@ -141,6 +141,23 @@ and it is exactly the stage the documented GPU scale-out (`deploy/`) targets. Th
 `generate` stage is excluded from these numbers on purpose: it is a network call
 to the external LLM API, so its latency is the provider's, not this graph's.
 
+## Observability
+
+Eval runs and every served request emit **one structured JSON line per event** to
+stdout (captured by Ray's log collection), so a run is greppable with `jq` and
+needs no logging backend stood up. The schema has a fixed spine — `ts`, `level`,
+`component` (`eval` / `serve` / ...), `event` — plus event-specific fields:
+
+```json
+{"ts": "...", "level": "INFO", "component": "serve", "event": "ask",
+ "intent": "factual", "refused": false, "n_sources": 5, "latency_ms": 1231.6}
+```
+
+So `make eval` records its metrics as machine-readable events and the Serve graph
+logs intent, refusal, source count, and per-request latency for each `/ask`. The
+Ray dashboard (`localhost:8265` once the cluster is up) covers cluster-level
+resource and task observability.
+
 ## Honest disclaimer
 
 - **Generation uses an external LLM API (Anthropic Claude)** on the happy path,

@@ -9,6 +9,8 @@ or LLM call, so the model never answers something the corpus cannot ground.
 
 from __future__ import annotations
 
+import time
+
 from fastapi import FastAPI
 from pydantic import BaseModel
 from ray import serve
@@ -18,6 +20,7 @@ from ray_rag.data.embed import Embedder
 from ray_rag.data.index import VectorIndex
 from ray_rag.models.intent import IntentClassifier
 from ray_rag.models.reranker import Reranker
+from ray_rag.observability import log_event
 from ray_rag.serve.generate import generate_answer
 
 api = FastAPI()
@@ -87,8 +90,16 @@ class Ingress:
 
     @api.post("/ask")
     async def ask(self, body: AskRequest) -> dict:
+        start = time.perf_counter()
         route = await self._router.route.remote(body.query)
         if route["intent"] == "out_of_scope":
+            log_event(
+                "serve",
+                "ask",
+                intent=route["intent"],
+                refused=True,
+                latency_ms=(time.perf_counter() - start) * 1000,
+            )
             return {
                 "intent": route["intent"],
                 "answer": "This question is outside the scope of the indexed corpus.",
@@ -97,4 +108,12 @@ class Ingress:
         candidates = await self._retriever.retrieve.remote(body.query, settings.retrieve_top_k)
         reranked = await self._reranker.rerank.remote(body.query, candidates, settings.rerank_top_k)
         result = await self._generator.generate.remote(body.query, reranked)
+        log_event(
+            "serve",
+            "ask",
+            intent=route["intent"],
+            refused=False,
+            n_sources=len(result["sources"]),
+            latency_ms=(time.perf_counter() - start) * 1000,
+        )
         return {"intent": route["intent"], **result}

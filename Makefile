@@ -4,11 +4,11 @@ install:  ## install package + dev tooling
 	pip install -e ".[dev]"
 
 lint:
-	ruff check src tests
-	ruff format --check src tests
+	ruff check src tests scripts
+	ruff format --check src tests scripts
 
 typecheck:
-	mypy src
+	mypy src scripts
 
 test:
 	pytest -q

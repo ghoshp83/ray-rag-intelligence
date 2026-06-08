@@ -154,9 +154,11 @@ needs no logging backend stood up. The schema has a fixed spine — `ts`, `level
 ```
 
 So `make eval` records its metrics as machine-readable events and the Serve graph
-logs intent, refusal, source count, and per-request latency for each `/ask`. The
-Ray dashboard (`localhost:8265` once the cluster is up) covers cluster-level
-resource and task observability.
+logs intent, refusal, source count, and per-request latency for each `/ask`. It
+also writes a self-describing run artifact to `artifacts/eval_report.json` — the
+metrics plus the model and retrieval depths that produced them, so a saved report
+is meaningful on its own. The Ray dashboard (`localhost:8265` once the cluster is
+up) covers cluster-level resource and task observability.
 
 ## Honest disclaimer
 

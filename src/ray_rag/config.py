@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     reranker_path: str = "artifacts/reranker.json"
     intent_path: str = "artifacts/intent_clf.joblib"
     index_path: str = "artifacts/index.faiss"
+    eval_report_path: str = "artifacts/eval_report.json"
 
     # --- Retrieval depths ---
     retrieve_top_k: int = 50

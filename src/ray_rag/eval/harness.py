@@ -13,7 +13,9 @@ Run: `python -m ray_rag.eval.harness`
 
 from __future__ import annotations
 
+import json
 import os
+from datetime import datetime, timezone
 
 import numpy as np
 
@@ -92,6 +94,34 @@ def evaluate_grounding(index, embedder, reranker, labelled) -> dict:
     }
 
 
+def build_report(reranker: dict, intent: dict, grounding: dict | None) -> dict:
+    """Assemble the persisted eval report: metrics plus the context to read them in.
+
+    Carries the config that shaped the numbers (model, retrieval depths, which
+    held-out set) so a saved report is self-describing — a metric is meaningless
+    without the corpus and depths that produced it. `grounding` is None when the
+    LLM eval was skipped, recorded explicitly rather than omitted (never silent).
+    """
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "config": {
+            "embed_model": settings.embed_model,
+            "retrieve_top_k": settings.retrieve_top_k,
+            "rerank_top_k": settings.rerank_top_k,
+            "eval_path": settings.eval_path,
+        },
+        "reranker": reranker,
+        "intent": intent,
+        "grounding": grounding,
+    }
+
+
+def write_report(report: dict, path: str) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(report, f, indent=2)
+
+
 def main() -> None:
     embedder = Embedder(settings.embed_model)
     index = VectorIndex.load(settings.index_path)
@@ -116,6 +146,7 @@ def main() -> None:
     )
     log_event("eval", "intent", **ic)
 
+    g: dict | None = None
     if os.environ.get("ANTHROPIC_API_KEY"):
         g = evaluate_grounding(index, embedder, reranker, labelled)
         print(
@@ -126,6 +157,9 @@ def main() -> None:
     else:
         print("grounding SKIPPED: ANTHROPIC_API_KEY not set (generation eval needs the LLM API).")
         log_event("eval", "grounding_skipped", reason="ANTHROPIC_API_KEY not set")
+
+    write_report(build_report(rr, ic, g), settings.eval_report_path)
+    print(f"wrote eval report -> {settings.eval_report_path}")
 
 
 if __name__ == "__main__":

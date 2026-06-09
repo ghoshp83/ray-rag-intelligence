@@ -33,3 +33,21 @@
 {"query": "Which Ray library runs many training trials in parallel?", "relevant_docs": ["ray_tune.md"]}
 {"query": "How does Ray let the same code run from a laptop to a cluster?", "relevant_docs": ["ray_core.md", "ray_serve.md"]}
 {"query": "Why does retrieval favour recall while reranking improves precision at the top?", "relevant_docs": ["vector_search.md", "reranking.md"]}
+{"query": "What is the role of the head node in a Ray cluster?", "relevant_docs": ["ray_clusters.md"]}
+{"query": "How does the autoscaler decide to add or remove worker nodes?", "relevant_docs": ["ray_clusters.md"]}
+{"query": "Can the same Ray program run on a laptop and a large cluster unchanged?", "relevant_docs": ["ray_clusters.md"]}
+{"query": "How does Ray rebuild a lost object after a worker dies?", "relevant_docs": ["ray_fault_tolerance.md"]}
+{"query": "What lets a Ray task retry automatically when it errors?", "relevant_docs": ["ray_fault_tolerance.md"]}
+{"query": "Why is the head node critical for surviving a cluster restart?", "relevant_docs": ["ray_fault_tolerance.md"]}
+{"query": "Where can I see the live resource usage of a Ray cluster?", "relevant_docs": ["ray_observability.md"]}
+{"query": "How do I find out whether my Ray tasks are actually running in parallel?", "relevant_docs": ["ray_observability.md"]}
+{"query": "How are Ray metrics exported to an external monitoring system?", "relevant_docs": ["ray_observability.md"]}
+{"query": "When should I fine-tune a model instead of using retrieval?", "relevant_docs": ["fine_tuning.md"]}
+{"query": "Why does retrieval keep answers more current than fine-tuning?", "relevant_docs": ["fine_tuning.md"]}
+{"query": "Can I combine fine-tuning and retrieval in one system?", "relevant_docs": ["fine_tuning.md"]}
+{"query": "Why must documents be split into chunks before embedding?", "relevant_docs": ["chunking.md"]}
+{"query": "What goes wrong if retrieval chunks are too large?", "relevant_docs": ["chunking.md"]}
+{"query": "Why add an overlap between neighbouring chunks?", "relevant_docs": ["chunking.md"]}
+{"query": "How does hybrid search combine lexical and dense retrieval?", "relevant_docs": ["hybrid_search.md"]}
+{"query": "Why does dense retrieval struggle with exact identifiers?", "relevant_docs": ["hybrid_search.md"]}
+{"query": "What does BM25 score a document on?", "relevant_docs": ["hybrid_search.md"]}

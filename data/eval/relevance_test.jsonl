@@ -16,3 +16,15 @@
 {"query": "What should happen when a question is outside the corpus scope?", "relevant_docs": ["grounding.md"]}
 {"query": "Which stage owns ranking quality, the trained model or the LLM?", "relevant_docs": ["reranking.md"]}
 {"query": "What keeps generated answers from hallucinating unsupported claims?", "relevant_docs": ["grounding.md"]}
+{"query": "What hardware does a Ray cluster pool together across its nodes?", "relevant_docs": ["ray_clusters.md"]}
+{"query": "How does Ray scale a cluster down to control cost when it is idle?", "relevant_docs": ["ray_clusters.md"]}
+{"query": "How can I recover a lost object after a worker crashes?", "relevant_docs": ["ray_fault_tolerance.md"]}
+{"query": "How many times will Ray restart a failed actor?", "relevant_docs": ["ray_fault_tolerance.md"]}
+{"query": "What tool shows which actors and tasks are currently running?", "relevant_docs": ["ray_observability.md"]}
+{"query": "How do I profile where time goes in a distributed Ray job?", "relevant_docs": ["ray_observability.md"]}
+{"query": "Is changing a model's tone better done by training its weights or by retrieval?", "relevant_docs": ["fine_tuning.md"]}
+{"query": "Why is updating a corpus cheaper than retraining a model?", "relevant_docs": ["fine_tuning.md"]}
+{"query": "How large should a single retrieval chunk be?", "relevant_docs": ["chunking.md"]}
+{"query": "Why split documents on paragraphs rather than at a fixed character count?", "relevant_docs": ["chunking.md"]}
+{"query": "Why combine BM25 with dense embeddings in one retriever?", "relevant_docs": ["hybrid_search.md"]}
+{"query": "Which retrieval method nails exact keyword matches?", "relevant_docs": ["hybrid_search.md"]}

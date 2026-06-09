@@ -36,18 +36,29 @@ def _labels(candidates: list[dict], relevant: set[str]) -> list[float]:
 def evaluate_reranker(index, embedder, reranker, labelled, k) -> dict:
     dense_ndcg, dense_mrr, dense_recall = [], [], []
     rr_ndcg, rr_mrr, rr_recall = [], [], []
+    per_query = []
     for ex in labelled:
         relevant = set(ex["relevant_docs"])
         candidates = index.search(embedder.encode([ex["query"]]), settings.retrieve_top_k)[0]
         if not candidates:
             continue
-        dense_ndcg.append(ndcg_at_k(_labels(candidates, relevant), k))
+        d_ndcg = ndcg_at_k(_labels(candidates, relevant), k)
+        dense_ndcg.append(d_ndcg)
         dense_mrr.append(mrr(_labels(candidates, relevant)))
         dense_recall.append(recall_at_k([c["doc_id"] for c in candidates], relevant, k))
         reranked = reranker.rerank(ex["query"], candidates, len(candidates))
-        rr_ndcg.append(ndcg_at_k(_labels(reranked, relevant), k))
+        r_ndcg = ndcg_at_k(_labels(reranked, relevant), k)
+        rr_ndcg.append(r_ndcg)
         rr_mrr.append(mrr(_labels(reranked, relevant)))
         rr_recall.append(recall_at_k([c["doc_id"] for c in reranked], relevant, k))
+        per_query.append(
+            {
+                "query": ex["query"],
+                "dense_ndcg": d_ndcg,
+                "reranked_ndcg": r_ndcg,
+                "delta": r_ndcg - d_ndcg,
+            }
+        )
     return {
         "dense_ndcg": float(np.mean(dense_ndcg)),
         "reranked_ndcg": float(np.mean(rr_ndcg)),
@@ -55,6 +66,25 @@ def evaluate_reranker(index, embedder, reranker, labelled, k) -> dict:
         "reranked_mrr": float(np.mean(rr_mrr)),
         "dense_recall": float(np.mean(dense_recall)),
         "reranked_recall": float(np.mean(rr_recall)),
+        **uplift_summary(per_query),
+        "per_query": per_query,
+    }
+
+
+def uplift_summary(per_query: list[dict], tol: float = 1e-9) -> dict:
+    """Count where reranking moved nDCG up, down, or not at all.
+
+    The headline dense->reranked averages can read as flat "parity" while hiding
+    that the reranker helped some queries and hurt others in equal measure. These
+    counts make that visible: a reranker worth keeping should improve more queries
+    than it regresses, not just match dense on average.
+    """
+    improved = sum(1 for r in per_query if r["delta"] > tol)
+    regressed = sum(1 for r in per_query if r["delta"] < -tol)
+    return {
+        "n_improved": improved,
+        "n_regressed": regressed,
+        "n_tied": len(per_query) - improved - regressed,
     }
 
 
@@ -138,7 +168,17 @@ def main() -> None:
         f"retrieval recall@{settings.rerank_top_k}: dense={rr['dense_recall']:.3f} -> "
         f"reranked={rr['reranked_recall']:.3f}"
     )
-    log_event("eval", "reranker", **rr)
+    print(
+        f"reranker uplift: improved={rr['n_improved']} regressed={rr['n_regressed']} "
+        f"tied={rr['n_tied']} (n={len(rr['per_query'])})"
+    )
+    movers = sorted(rr["per_query"], key=lambda r: r["delta"])
+    if movers and movers[0]["delta"] < 0:
+        print(f"  worst regression (Δ{movers[0]['delta']:+.3f}): {movers[0]['query']!r}")
+    if movers and movers[-1]["delta"] > 0:
+        print(f"  best gain        (Δ{movers[-1]['delta']:+.3f}): {movers[-1]['query']!r}")
+    # Persist the summary counts; drop the verbose per-query rows from the logged event.
+    log_event("eval", "reranker", **{k: v for k, v in rr.items() if k != "per_query"})
     ic = evaluate_intent(load_jsonl(settings.intents_path), embedder)
     print(
         f"intent    holdout macro-F1={ic['holdout_macro_f1']:.3f}  "

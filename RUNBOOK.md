@@ -31,3 +31,24 @@ Ray dashboard: http://localhost:8265.
 
 `make ingest` rebuilds the index from scratch (deterministic chunk ids).
 `make train` overwrites the artifacts. Neither mutates the corpus or labels.
+
+## Reading the reranker eval honestly
+
+`make eval` prints, alongside the dense→reranked nDCG/MRR averages, a per-query
+uplift line — `improved / regressed / tied` — and the single worst regression
+and best gain. Read the averages *with* that breakdown: a flat average can be a
+genuine tie or it can be wins and regressions cancelling out, and only the
+per-query counts tell them apart. A reranker worth shipping improves more
+queries than it regresses.
+
+If the reranker shows no uplift over dense (counts skew to `tied`), that is
+usually not a model bug — it means the corpus gives dense retrieval no ordering
+to fix. Dense embeddings separate topically-distinct documents cleanly, so on a
+small clean corpus `recall@5` saturates at 1.000 and dense already orders the top
+near-perfectly. The lever is the **corpus**, not the hyperparameters: add
+*lexically-confusable hard negatives* — sibling documents that share surface
+vocabulary with a query but answer a different question — then label queries over
+that confusable region (`data/eval/relevance_*.jsonl`), `make ingest`, `make
+train`, `make eval`. That is how the bundled corpus earns its uplift. Change the
+data, re-run **once**, and report the result as-is; do not sweep seeds or trial
+counts to chase a number.

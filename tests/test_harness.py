@@ -8,7 +8,7 @@ spurious win or loss — otherwise the diagnostic would mislabel a parity result
 
 from __future__ import annotations
 
-from ray_rag.eval.harness import uplift_summary
+from ray_rag.eval.harness import evaluate_reranker, uplift_summary
 
 
 def _rows(deltas: list[float]) -> list[dict]:
@@ -28,3 +28,58 @@ def test_float_noise_counts_as_tied_not_a_win_or_loss():
 
 def test_empty_is_all_zero():
     assert uplift_summary([]) == {"n_improved": 0, "n_regressed": 0, "n_tied": 0}
+
+
+def _docs(*ids: str) -> list[dict]:
+    return [{"doc_id": i} for i in ids]
+
+
+class _ScriptedStage:
+    """Returns preset result lists, one per call, in order — fakes a stage that
+    is queried once per labelled example so a test can fix dense and reranked
+    orderings independently of any model."""
+
+    def __init__(self, results: list[list[dict]]) -> None:
+        self._results = results
+        self._i = 0
+
+    def _next(self) -> list[dict]:
+        out = self._results[self._i]
+        self._i += 1
+        return out
+
+
+class _FakeEmbedder:
+    def encode(self, queries):  # noqa: ANN001 - duck-typed, value unused by fakes
+        return queries
+
+
+class _FakeIndex(_ScriptedStage):
+    def search(self, _vec, _k):  # noqa: ANN001
+        return [self._next()]
+
+
+class _FakeReranker(_ScriptedStage):
+    def rerank(self, _query, _candidates, _n):  # noqa: ANN001
+        return self._next()
+
+
+def test_diagnostic_credits_reranked_order_not_dense_order():
+    # q1: dense ranks the relevant doc A second; the reranker lifts it to first
+    # -> reranked nDCG must beat dense nDCG (improved). q2: dense already optimal
+    # and the reranker leaves it -> tied. The counts must reflect the *reranked*
+    # ordering, which is the claim the README's uplift breakdown makes.
+    labelled = [
+        {"query": "q1", "relevant_docs": ["A"]},
+        {"query": "q2", "relevant_docs": ["X"]},
+    ]
+    index = _FakeIndex([_docs("B", "A", "C"), _docs("X", "Y", "Z")])
+    reranker = _FakeReranker([_docs("A", "B", "C"), _docs("X", "Y", "Z")])
+
+    out = evaluate_reranker(index, _FakeEmbedder(), reranker, labelled, k=5)
+
+    assert (out["n_improved"], out["n_regressed"], out["n_tied"]) == (1, 0, 1)
+    assert out["reranked_ndcg"] > out["dense_ndcg"]
+    assert out["reranked_ndcg"] == 1.0  # both queries perfectly ordered after rerank
+    assert out["per_query"][0]["delta"] > 0  # q1 lifted
+    assert abs(out["per_query"][1]["delta"]) < 1e-9  # q2 unchanged

@@ -73,3 +73,21 @@
 {"query": "What's the plot of Hamlet?", "intent": "out_of_scope"}
 {"query": "How far is the moon from Earth?", "intent": "out_of_scope"}
 {"query": "What's a good gift for a five-year-old?", "intent": "out_of_scope"}
+{"query": "What does the head node do in a Ray cluster?", "intent": "factual"}
+{"query": "How does Ray reconstruct a lost object after a worker fails?", "intent": "factual"}
+{"query": "What does the Ray dashboard show about a running cluster?", "intent": "factual"}
+{"query": "When should you fine-tune a model instead of using retrieval?", "intent": "factual"}
+{"query": "Why is a document split into chunks before it is embedded?", "intent": "factual"}
+{"query": "What weakness of dense retrieval does hybrid search address?", "intent": "factual"}
+{"query": "Give an overview of how a Ray cluster is structured.", "intent": "summarize"}
+{"query": "Summarize how Ray Core keeps a job alive when workers fail.", "intent": "summarize"}
+{"query": "Summarize what the Ray dashboard is used for.", "intent": "summarize"}
+{"query": "Explain at a high level the difference between fine-tuning and retrieval.", "intent": "summarize"}
+{"query": "Give a high-level overview of why chunking matters in RAG.", "intent": "summarize"}
+{"query": "Summarize how hybrid search combines lexical and dense retrieval.", "intent": "summarize"}
+{"query": "What's the offside rule in football?", "intent": "out_of_scope"}
+{"query": "How do I make a classic margarita?", "intent": "out_of_scope"}
+{"query": "What's the tallest building in the world?", "intent": "out_of_scope"}
+{"query": "Recommend a good hiking trail near Seattle.", "intent": "out_of_scope"}
+{"query": "In what year did the Berlin Wall fall?", "intent": "out_of_scope"}
+{"query": "How many calories are in a banana?", "intent": "out_of_scope"}

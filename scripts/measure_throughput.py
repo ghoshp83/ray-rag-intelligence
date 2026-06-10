@@ -4,7 +4,7 @@ Times the `map_batches` embedding pass and reports chunks/sec alongside the batc
 size, actor concurrency, and the Ray cluster CPU count, so the figure is read in
 the context of the resources that produced it (it scales with cluster CPUs).
 
-The bundled corpus is tiny (~20 chunks), so a raw pass would measure one-off
+The bundled corpus is tiny (~26 chunks), so a raw pass would measure one-off
 actor/model startup, not embedding speed. To report *steady-state* throughput we
 replicate the corpus chunks up to a target count, then run one warm-up pass
 (discarded — it pays the model-load cost) before the timed pass. CPU-only, no

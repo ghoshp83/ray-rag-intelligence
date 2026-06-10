@@ -139,13 +139,15 @@ The online request path is timed per stage by `make latency` (the trained-ML
 
 | Stage | p50 | p95 | What it does |
 |-------|-----|-----|--------------|
-| route | ~20 ms | ~46 ms | intent classify (embed + logistic regression) |
-| retrieve | ~28 ms | ~50 ms | embed query + FAISS top-50 search |
-| **rerank** | **~1180 ms** | **~1410 ms** | learned-to-rank over 50 candidates |
-| total | ~1230 ms | ~1470 ms | route + retrieve + rerank |
+| route | ~30 ms | ~71 ms | intent classify (embed + logistic regression) |
+| retrieve | ~38 ms | ~68 ms | embed query + FAISS search (top-k capped at the corpus) |
+| **rerank** | **~2000 ms** | **~2410 ms** | learned-to-rank over every retrieved candidate |
+| total | ~2074 ms | ~2528 ms | route + retrieve + rerank |
 
-Reranking dominates: its cross-encoder *feature* scores all 50 retrieved
-candidates as query–passage pairs on CPU, which is the cost. That is the honest
+Reranking dominates: its cross-encoder *feature* scores every retrieved candidate
+(`retrieve_top_k=50`, capped at the 26-chunk corpus) as a query–passage pair on
+CPU, which is the cost — and it grows with both the candidate count and the corpus
+(the figure rose as the corpus grew from 10 to 16 docs). That is the honest
 shape of the trade-off — the cross-encoder buys ranking signal at a latency price,
 and it is exactly the stage the documented GPU scale-out (`deploy/`) targets. The
 `generate` stage is excluded from these numbers on purpose: it is a network call

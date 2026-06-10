@@ -21,7 +21,7 @@ Ray dashboard: http://localhost:8265.
 |---------|-------------|--------|
 | Serve replicas fail to start: `FileNotFoundError` on index/model | step 2/3 not run, or `artifacts/` not visible to workers | Run `make ingest && make train`; ensure artifacts are on shared/cluster storage. |
 | `index/sidecar desync` error on load | index and `.chunks.jsonl` out of sync (partial write) | Delete `artifacts/index.faiss*` and re-run `make ingest`. |
-| `/ask` returns the out-of-scope refusal for a valid question | intent classifier misrouted | Inspect with `make eval` (intent F1); add labelled examples to `data/intents/intents.jsonl` and retrain. |
+| `/ask` returns the out-of-scope refusal for a valid question | intent classifier misrouted | `make eval` prints **per-intent F1** — find the weakest route, add labelled examples for *that* intent to `data/intents/intents.jsonl`, and retrain. |
 | Generation errors / 401 | `ANTHROPIC_API_KEY` unset or invalid | Set it in `.env` (never commit it). The generator fails loud rather than returning an ungrounded answer. |
 | Empty / irrelevant answers | retrieval miss or weak reranking | Check `make eval` nDCG uplift; raise `RAYRAG_RETRIEVE_TOP_K`; confirm the corpus actually covers the question. |
 | Reranker training raises "need >=2 labelled queries" | too few rows in `data/eval/relevance_train.jsonl` | Add labelled queries; each must retrieve at least one candidate. |

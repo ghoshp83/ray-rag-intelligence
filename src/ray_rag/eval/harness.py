@@ -102,9 +102,14 @@ def evaluate_intent(labelled, embedder, clf) -> dict:
     # without leaking the test rows the saved model was fit on.
     model = clone(clf).fit(X_tr, y_tr)
     pred = model.predict(X_te)
+    labels = sorted(set(y))
+    per_class = f1_score(y_te, pred, average=None, labels=labels, zero_division=0)
     return {
         "holdout_macro_f1": float(f1_score(y_te, pred, average="macro")),
         "holdout_accuracy": float(accuracy_score(y_te, pred)),
+        # Per-intent F1 so a maintainer can see *which* route is weak — macro-F1
+        # alone can't say where to add labelled examples (RUNBOOK leans on this).
+        "per_class_f1": {name: float(f) for name, f in zip(labels, per_class, strict=True)},
         "n_test": int(len(y_te)),
     }
 
@@ -190,6 +195,10 @@ def main() -> None:
     print(
         f"intent    holdout macro-F1={ic['holdout_macro_f1']:.3f}  "
         f"acc={ic['holdout_accuracy']:.3f}  (n={ic['n_test']})"
+    )
+    print(
+        "  per-intent F1: "
+        + "  ".join(f"{name}={f1:.3f}" for name, f1 in ic["per_class_f1"].items())
     )
     log_event("eval", "intent", **ic)
 

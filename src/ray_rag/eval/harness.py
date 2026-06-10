@@ -88,16 +88,20 @@ def uplift_summary(per_query: list[dict], tol: float = 1e-9) -> dict:
     }
 
 
-def evaluate_intent(labelled, embedder) -> dict:
-    from sklearn.linear_model import LogisticRegression
+def evaluate_intent(labelled, embedder, clf) -> dict:
+    from sklearn.base import clone
     from sklearn.metrics import accuracy_score, f1_score
     from sklearn.model_selection import train_test_split
 
     X = embedder.encode([ex["query"] for ex in labelled])
     y = np.array([ex["intent"] for ex in labelled])
     X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.3, stratify=y, random_state=0)
-    clf = LogisticRegression(max_iter=1000).fit(X_tr, y_tr)
-    pred = clf.predict(X_te)
+    # Re-fit the *deployed* classifier's tuned hyperparameters (clone copies the
+    # params but not the fitted state) on the train split, so the held-out figure
+    # measures the model we actually ship rather than an untuned default — and
+    # without leaking the test rows the saved model was fit on.
+    model = clone(clf).fit(X_tr, y_tr)
+    pred = model.predict(X_te)
     return {
         "holdout_macro_f1": float(f1_score(y_te, pred, average="macro")),
         "holdout_accuracy": float(accuracy_score(y_te, pred)),
@@ -179,7 +183,10 @@ def main() -> None:
         print(f"  best gain        (Δ{movers[-1]['delta']:+.3f}): {movers[-1]['query']!r}")
     # Persist the summary counts; drop the verbose per-query rows from the logged event.
     log_event("eval", "reranker", **{k: v for k, v in rr.items() if k != "per_query"})
-    ic = evaluate_intent(load_jsonl(settings.intents_path), embedder)
+    import joblib
+
+    intent_clf = joblib.load(settings.intent_path)
+    ic = evaluate_intent(load_jsonl(settings.intents_path), embedder, intent_clf)
     print(
         f"intent    holdout macro-F1={ic['holdout_macro_f1']:.3f}  "
         f"acc={ic['holdout_accuracy']:.3f}  (n={ic['n_test']})"

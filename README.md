@@ -95,7 +95,7 @@ generalisation numbers, not training fit:
 | Retrieval recall@5 | 1.000 | 1.000 |
 | Retrieval nDCG@5 | 0.898 | **0.948** |
 | Retrieval MRR | 0.925 | **0.983** |
-| Intent classifier — macro-F1 (n=28) | — | 0.816 |
+| Intent classifier — macro-F1 (n=28) | — | 0.894 |
 
 Per-query, reranking is a strict win on this set: **4 queries improved, 0
 regressed, 26 tied** — so the nDCG/MRR gains are not an average masking

@@ -97,6 +97,7 @@ class Ingress:
                 "serve",
                 "ask",
                 intent=route["intent"],
+                confidence=route["confidence"],
                 refused=True,
                 latency_ms=(time.perf_counter() - start) * 1000,
             )
@@ -112,6 +113,7 @@ class Ingress:
             "serve",
             "ask",
             intent=route["intent"],
+            confidence=route["confidence"],
             refused=False,
             n_sources=len(result["sources"]),
             latency_ms=(time.perf_counter() - start) * 1000,

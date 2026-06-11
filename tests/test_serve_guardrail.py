@@ -9,8 +9,12 @@ ANTHROPIC_API_KEY, just the composition logic.
 """
 
 import asyncio
+import io
+import json
+import logging
 from unittest.mock import AsyncMock, MagicMock
 
+from ray_rag.observability import _JsonFormatter
 from ray_rag.serve.deployments import AskRequest, Ingress
 
 _INGRESS_CLS = Ingress.func_or_class
@@ -61,6 +65,27 @@ def test_in_scope_query_flows_retrieve_rerank_generate_in_order():
     # generation sees the reranked passages — not the raw query alone.
     assert reranker.rerank.remote.call_args.args[1] == _PASSAGES
     assert generator.generate.remote.call_args.args[1] == _PASSAGES
+
+
+def test_ask_logs_routing_confidence():
+    # A misroute is the RUNBOOK's debugging path; the /ask event must carry the
+    # router's confidence so a near-miss refusal is distinguishable from a
+    # certain one without re-running the query.
+    ingress = _INGRESS_CLS(*_handles("out_of_scope"))
+    buf = io.StringIO()
+    handler = logging.StreamHandler(buf)
+    handler.setFormatter(_JsonFormatter())
+    logger = logging.getLogger("ray_rag")
+    logger.addHandler(handler)
+    try:
+        asyncio.run(ingress.ask(AskRequest(query="off-topic")))
+    finally:
+        logger.removeHandler(handler)
+
+    event = json.loads(buf.getvalue().strip().splitlines()[-1])
+    assert event["event"] == "ask"
+    assert event["confidence"] == 0.9
+    assert event["refused"] is True
 
 
 def test_health_endpoint_reports_ok():

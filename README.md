@@ -162,11 +162,12 @@ needs no logging backend stood up. The schema has a fixed spine — `ts`, `level
 
 ```json
 {"ts": "...", "level": "INFO", "component": "serve", "event": "ask",
- "intent": "factual", "refused": false, "n_sources": 5, "latency_ms": 1231.6}
+ "intent": "factual", "confidence": 0.94, "refused": false, "n_sources": 5, "latency_ms": 2074.3}
 ```
 
 So `make eval` records its metrics as machine-readable events and the Serve graph
-logs intent, refusal, source count, and per-request latency for each `/ask`. It
+logs intent, routing confidence, refusal, source count, and per-request latency
+for each `/ask`. It
 also writes a self-describing run artifact to `artifacts/eval_report.json` — the
 metrics plus the model and retrieval depths that produced them, so a saved report
 is meaningful on its own. The Ray dashboard (`localhost:8265` once the cluster is

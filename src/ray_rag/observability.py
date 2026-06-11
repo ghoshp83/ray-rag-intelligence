@@ -20,7 +20,7 @@ passes, so downstream parsing never breaks on a key collision.
 Example line:
 
     {"ts": "2026-06-08T10:00:00+00:00", "level": "INFO", "component": "serve",
-     "event": "ask", "intent": "factual", "latency_ms": 1231.6, "n_sources": 5}
+     "event": "ask", "intent": "factual", "confidence": 0.94, "latency_ms": 2074.3, "n_sources": 5}
 """
 
 from __future__ import annotations

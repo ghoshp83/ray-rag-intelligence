@@ -212,7 +212,7 @@ def main() -> None:
         log_event("eval", "grounding", **g)
     else:
         print("grounding SKIPPED: ANTHROPIC_API_KEY not set (generation eval needs the LLM API).")
-        log_event("eval", "grounding_skipped", reason="ANTHROPIC_API_KEY not set")
+        log_event("eval", "grounding_skipped", level="WARNING", reason="ANTHROPIC_API_KEY not set")
 
     write_report(build_report(rr, ic, g), settings.eval_report_path)
     print(f"wrote eval report -> {settings.eval_report_path}")

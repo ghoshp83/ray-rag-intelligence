@@ -46,11 +46,18 @@ def test_log_event_emits_valid_json_with_reserved_spine():
 
 
 def test_event_fields_cannot_shadow_reserved_keys():
-    # `ts` and `level` are reserved but, unlike component/event, are not named
-    # params, so a caller *can* pass them as fields — the formatter must drop
-    # them rather than let them corrupt the schema spine.
-    rec = _capture_event("eval", "reranker", level="DEBUG", ts="hacked", dense_ndcg=0.9)
+    # `ts` is reserved but, unlike component/event/level, is not a named param,
+    # so a caller *can* pass it as a field — the formatter must drop it rather
+    # than let it corrupt the schema spine.
+    rec = _capture_event("eval", "reranker", ts="hacked", dense_ndcg=0.9)
     assert rec["event"] == "reranker"
-    assert rec["level"] == "INFO"
     assert rec["ts"] != "hacked"
     assert rec["dense_ndcg"] == 0.9
+
+
+def test_explicit_level_sets_the_spine():
+    # A non-routine event (e.g. a skipped eval step) can be raised to WARNING so
+    # it stands out; the schema's `level` column then reflects it.
+    rec = _capture_event("eval", "grounding_skipped", level="WARNING", reason="no key")
+    assert rec["level"] == "WARNING"
+    assert rec["reason"] == "no key"

@@ -65,6 +65,12 @@ def _logger() -> logging.Logger:
     return logger
 
 
-def log_event(component: str, event: str, **fields: Any) -> None:
-    """Emit one structured JSON log line. See the module docstring for the schema."""
-    _logger().info(event, extra={"component": component, "fields": fields})
+def log_event(component: str, event: str, level: str = "INFO", **fields: Any) -> None:
+    """Emit one structured JSON log line at `level` (default INFO).
+
+    See the module docstring for the schema. `level` lets a caller flag a
+    non-routine event — e.g. a skipped eval step — as WARNING so it stands out
+    in the log stream instead of hiding among the INFO lines, which the schema's
+    `level` column already advertises but the old INFO-only path never produced.
+    """
+    _logger().log(getattr(logging, level), event, extra={"component": component, "fields": fields})

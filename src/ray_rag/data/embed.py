@@ -91,11 +91,15 @@ def build_corpus_index(
 
 def main() -> None:
     from ray_rag.config import settings
+    from ray_rag.observability import log_event
 
     if not ray.is_initialized():
         ray.init()
     index = build_corpus_index(settings.corpus_path, settings.embed_model, settings.index_path)
     print(f"built index: {len(index)} chunks -> {settings.index_path}")
+    # The observability schema advertises an `ingest` component; emit the build as
+    # one structured event so the index-build step is greppable like the rest.
+    log_event("ingest", "index_built", n_chunks=len(index), index_path=settings.index_path)
 
 
 if __name__ == "__main__":

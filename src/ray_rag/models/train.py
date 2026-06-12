@@ -17,6 +17,7 @@ from ray_rag.data.embed import Embedder, build_corpus_index
 from ray_rag.data.index import VectorIndex
 from ray_rag.models.intent import train_intent
 from ray_rag.models.reranker import train_reranker
+from ray_rag.observability import log_event
 
 
 def load_jsonl(path: str | Path) -> list[dict]:
@@ -44,6 +45,9 @@ def main() -> None:
     print(f"  best config: {rr['config']}")
     print(f"intent:   cv_macroF1={ic['cv_f1']:.3f}  -> {settings.intent_path}")
     print(f"  best config: {ic['config']}")
+    # The observability schema advertises a `train` component; emit the headline
+    # tuned metrics as one structured event so a training run is greppable too.
+    log_event("train", "models_trained", reranker_val_ndcg=rr["val_ndcg"], intent_cv_f1=ic["cv_f1"])
 
 
 if __name__ == "__main__":

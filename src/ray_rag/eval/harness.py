@@ -114,12 +114,16 @@ def evaluate_intent(labelled, embedder, clf) -> dict:
     }
 
 
-def evaluate_grounding(index, embedder, reranker, labelled) -> dict:
-    from anthropic import Anthropic
-
+def evaluate_grounding(index, embedder, reranker, labelled, client=None) -> dict:
     from ray_rag.serve.generate import generate_answer
 
-    client = Anthropic()
+    # The Anthropic client is injectable (defaulted, like generate_answer's own
+    # `client` arg) so this loop — retrieve, rerank, generate, score the answer
+    # against the *reranked* ids — is unit-testable with a fake client, key-free.
+    if client is None:
+        from anthropic import Anthropic
+
+        client = Anthropic()
     scores = []
     for ex in labelled:
         candidates = index.search(embedder.encode([ex["query"]]), settings.retrieve_top_k)[0]

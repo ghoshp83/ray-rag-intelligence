@@ -8,7 +8,10 @@ spurious win or loss — otherwise the diagnostic would mislabel a parity result
 
 from __future__ import annotations
 
-from ray_rag.eval.harness import evaluate_reranker, uplift_summary
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+
+from ray_rag.eval.harness import evaluate_intent, evaluate_reranker, uplift_summary
 
 
 def _rows(deltas: list[float]) -> list[dict]:
@@ -83,3 +86,36 @@ def test_diagnostic_credits_reranked_order_not_dense_order():
     assert out["reranked_ndcg"] == 1.0  # both queries perfectly ordered after rerank
     assert out["per_query"][0]["delta"] > 0  # q1 lifted
     assert abs(out["per_query"][1]["delta"]) < 1e-9  # q2 unchanged
+
+
+class _OneHotEmbedder:
+    """Maps each query to a one-hot vector keyed by its leading intent token, so
+    the three classes are linearly separable and the held-out F1 is deterministic
+    — these tests pin the harness's wiring, not sklearn's accuracy."""
+
+    _COLS = {"factual": 0, "summarize": 1, "out_of_scope": 2}
+
+    def encode(self, queries):  # noqa: ANN001 - duck-typed
+        return np.array([np.eye(3)[self._COLS[q.split()[0]]] for q in queries], dtype=np.float32)
+
+
+def _intent_labelled() -> list[dict]:
+    intents = ("factual", "summarize", "out_of_scope")
+    return [{"query": f"{i} q{n}", "intent": i} for i in intents for n in range(6)]
+
+
+def test_evaluate_intent_does_not_fit_or_mutate_the_shipped_classifier():
+    # The harness must score the *deployed* model's tuned params via clone+refit on
+    # a train split — never fit the passed-in classifier in place, which would both
+    # leak the held-out rows into the fit and mutate the artifact we ship.
+    clf = LogisticRegression(C=0.123, max_iter=1000)
+    evaluate_intent(_intent_labelled(), _OneHotEmbedder(), clf)
+    assert not hasattr(clf, "coef_")  # untouched: clone() isolated the passed clf
+
+
+def test_evaluate_intent_reports_per_class_f1_keyed_by_sorted_labels():
+    out = evaluate_intent(_intent_labelled(), _OneHotEmbedder(), LogisticRegression(max_iter=1000))
+    # sklearn sorts labels alphabetically — NOT the INTENTS declaration order.
+    assert list(out["per_class_f1"]) == ["factual", "out_of_scope", "summarize"]
+    assert out["n_test"] == 6  # 18 samples, test_size=0.3 -> ceil(5.4) = 6
+    assert out["holdout_macro_f1"] == 1.0  # one-hot features are perfectly separable

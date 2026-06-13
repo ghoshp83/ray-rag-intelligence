@@ -140,18 +140,24 @@ def evaluate_grounding(index, embedder, reranker, labelled, client=None) -> dict
 def build_report(reranker: dict, intent: dict, grounding: dict | None) -> dict:
     """Assemble the persisted eval report: metrics plus the context to read them in.
 
-    Carries the config that shaped the numbers (model, retrieval depths, which
-    held-out set) so a saved report is self-describing — a metric is meaningless
-    without the corpus and depths that produced it. `grounding` is None when the
+    Carries the config that shaped the numbers (models, retrieval depths, which
+    sets) so a saved report is self-describing — a metric is meaningless without
+    the corpus, model, and depths that produced it. That includes `llm_model`
+    (which model produced the grounding score), `intents_path` (the set behind the
+    intent F1), and `eval_train_path` (what the held-out reranker number is held
+    out *from*) — not just the reranker's `eval_path`. `grounding` is None when the
     LLM eval was skipped, recorded explicitly rather than omitted (never silent).
     """
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "config": {
             "embed_model": settings.embed_model,
+            "llm_model": settings.llm_model,
             "retrieve_top_k": settings.retrieve_top_k,
             "rerank_top_k": settings.rerank_top_k,
+            "eval_train_path": settings.eval_train_path,
             "eval_path": settings.eval_path,
+            "intents_path": settings.intents_path,
         },
         "reranker": reranker,
         "intent": intent,

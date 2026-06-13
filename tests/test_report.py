@@ -21,8 +21,18 @@ def test_build_report_carries_config_and_metrics():
     assert report["reranker"] == rr
     assert report["intent"] == ic
     # config context must travel with the numbers — a metric is meaningless
-    # without the depths and model that produced it.
-    assert set(report["config"]) == {"embed_model", "retrieve_top_k", "rerank_top_k", "eval_path"}
+    # without the models, depths, and sets that produced it: the grounding score's
+    # llm_model, the intent F1's intents_path, and what the held-out reranker
+    # number is held out from (eval_train_path), not just the reranker eval_path.
+    assert set(report["config"]) == {
+        "embed_model",
+        "llm_model",
+        "retrieve_top_k",
+        "rerank_top_k",
+        "eval_train_path",
+        "eval_path",
+        "intents_path",
+    }
     assert "generated_at" in report
 
 

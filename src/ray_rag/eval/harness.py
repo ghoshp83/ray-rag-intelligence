@@ -42,14 +42,16 @@ def evaluate_reranker(index, embedder, reranker, labelled, k) -> dict:
         candidates = index.search(embedder.encode([ex["query"]]), settings.retrieve_top_k)[0]
         if not candidates:
             continue
-        d_ndcg = ndcg_at_k(_labels(candidates, relevant), k)
+        dense_lbls = _labels(candidates, relevant)
+        d_ndcg = ndcg_at_k(dense_lbls, k)
         dense_ndcg.append(d_ndcg)
-        dense_mrr.append(mrr(_labels(candidates, relevant)))
+        dense_mrr.append(mrr(dense_lbls))
         dense_recall.append(recall_at_k([c["doc_id"] for c in candidates], relevant, k))
         reranked = reranker.rerank(ex["query"], candidates, len(candidates))
-        r_ndcg = ndcg_at_k(_labels(reranked, relevant), k)
+        rr_lbls = _labels(reranked, relevant)
+        r_ndcg = ndcg_at_k(rr_lbls, k)
         rr_ndcg.append(r_ndcg)
-        rr_mrr.append(mrr(_labels(reranked, relevant)))
+        rr_mrr.append(mrr(rr_lbls))
         rr_recall.append(recall_at_k([c["doc_id"] for c in reranked], relevant, k))
         per_query.append(
             {

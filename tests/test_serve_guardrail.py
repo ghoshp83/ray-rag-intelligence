@@ -15,7 +15,7 @@ import logging
 from unittest.mock import AsyncMock, MagicMock
 
 from ray_rag.observability import _JsonFormatter
-from ray_rag.serve.deployments import AskRequest, Ingress
+from ray_rag.serve.deployments import AskRequest, Generator, Ingress
 
 _INGRESS_CLS = Ingress.func_or_class
 _PASSAGES = [{"chunk_id": "a.md#0-ef0e58ff7481", "text": "t", "source": "a.md"}]
@@ -91,3 +91,28 @@ def test_ask_logs_routing_confidence():
 def test_health_endpoint_reports_ok():
     ingress = _INGRESS_CLS(*_handles("factual"))
     assert ingress.health() == {"status": "ok"}
+
+
+class _FakeMessages:
+    def create(self, **_kwargs):
+        block = type("Block", (), {"type": "text", "text": "grounded answer"})()
+        return type("Resp", (), {"content": [block]})()
+
+
+def test_generator_projects_passages_to_chunk_id_and_source_only():
+    # The /ask response is the product surface. Each reranked passage carries text
+    # and a retrieval score internally, but a source returned to the caller must
+    # expose only its citable chunk_id and human-readable source — leaking the raw
+    # text would bloat the response and the score is a meaningless internal artifact.
+    # object.__new__ skips __init__ (which would construct a real Anthropic client).
+    gen = object.__new__(Generator.func_or_class)
+    gen._client = type("FakeClient", (), {"messages": _FakeMessages()})()
+    gen._model = "claude-opus-4-8"
+    passages = [
+        {"chunk_id": "a.md#0-ef0e58ff7481", "source": "a.md", "text": "body", "score": 0.42},
+    ]
+
+    out = gen.generate("a question", passages)
+
+    assert out["answer"] == "grounded answer"
+    assert out["sources"] == [{"chunk_id": "a.md#0-ef0e58ff7481", "source": "a.md"}]

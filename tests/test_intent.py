@@ -8,7 +8,9 @@ with the model and embedder injected so no model load or network is needed.
 
 import numpy as np
 
-from ray_rag.models.intent import IntentClassifier
+from ray_rag.config import settings
+from ray_rag.models.intent import INTENTS, IntentClassifier
+from ray_rag.models.train import load_jsonl
 
 
 class _FakeClf:
@@ -46,3 +48,12 @@ def test_predict_picks_a_different_class_when_probabilities_shift():
     intent, confidence = IntentClassifier(clf, _FakeEmbedder()).predict("what is ray?")
     assert intent == "factual"
     assert confidence == 0.8
+
+
+def test_training_labels_match_the_declared_intent_vocabulary():
+    # The shipped training set must use exactly the code's intent vocabulary. A
+    # typo'd or extra label (e.g. "out-of-scope") would train a silent extra class
+    # the router and guardrail never expect, diluting the model and never reaching
+    # the refusal path. Pin the data <-> code contract so that drift fails loud.
+    labels = {ex["intent"] for ex in load_jsonl(settings.intents_path)}
+    assert labels == set(INTENTS)

@@ -2,7 +2,8 @@
 
 import pytest
 
-from ray_rag.data.chunk import build_chunks, chunk_text, load_documents
+from ray_rag.data.chunk import _chunk_id, build_chunks, chunk_text, load_documents
+from ray_rag.eval.grounding import extract_citations
 
 
 def test_chunk_text_windows_advance_and_cover():
@@ -77,3 +78,33 @@ def test_build_chunks_ids_are_unique_and_stable(tmp_path):
     ids = [c.chunk_id for c in first]
     assert len(ids) == len(set(ids))  # unique within corpus
     assert ids == [c.chunk_id for c in second]  # deterministic across runs
+
+
+def test_build_chunk_ids_round_trip_through_citation_extraction(tmp_path):
+    # The chunk id IS the grounding contract: the eval matches an answer's bracketed
+    # [id] against the ids the model was given (eval/grounding.extract_citations). A
+    # chunk id that no longer parses as a citation (e.g. the `doc#idx-hash` separators
+    # changed) would keep ids unique+stable — the test above still passes — yet make
+    # grounding silently match nothing (valid_fraction vacuously 1.0). Pin the
+    # producer (build_chunks) ↔ consumer (extract_citations) round-trip so that
+    # silent-measurement regression fails loud here.
+    (tmp_path / "ray_serve.md").write_text(" ".join(f"w{i}" for i in range(50)))
+    cid = build_chunks(tmp_path, chunk_size=20, overlap=5)[0].chunk_id
+    assert cid.startswith("ray_serve.md#0-")  # doc id + per-doc index + hash
+    assert extract_citations(f"Ray Serve composes models [{cid}].") == [cid]
+
+
+def test_chunk_id_changes_when_text_changes():
+    # Editing a document must mint a new id so a citation to the old text cannot
+    # silently validate against the re-ingested (different) chunk at the same index.
+    assert _chunk_id("d.md", 0, "original text") != _chunk_id("d.md", 0, "edited text")
+
+
+def test_build_chunks_restarts_index_per_document(tmp_path):
+    # The #idx in a chunk id is per-document, not a running global counter, so an id
+    # stays meaningful as "the Nth chunk of THIS doc" regardless of corpus order.
+    (tmp_path / "a.md").write_text(" ".join(f"x{i}" for i in range(40)))
+    (tmp_path / "b.md").write_text(" ".join(f"y{i}" for i in range(40)))
+    chunks = build_chunks(tmp_path, chunk_size=20, overlap=5)
+    assert [c.chunk_id for c in chunks if c.doc_id == "a.md"][0].startswith("a.md#0-")
+    assert [c.chunk_id for c in chunks if c.doc_id == "b.md"][0].startswith("b.md#0-")

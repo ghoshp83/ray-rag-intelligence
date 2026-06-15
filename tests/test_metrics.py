@@ -23,6 +23,16 @@ def test_ndcg_no_relevant_items_is_zero():
     assert ndcg_at_k([0, 0, 0], k=3) == 0.0
 
 
+def test_ndcg_at_k_truncates_at_k():
+    # The whole point of @k: a relevant item ranked beyond position k contributes
+    # nothing. The only relevant item here sits at rank 4, outside k=3, so DCG@3 is
+    # 0 while the ideal (relevant first) is non-zero -> nDCG@3 = 0. If the `[:k]`
+    # slice were dropped, this would silently become full-list nDCG (here ~0.43),
+    # inflating the reranker's headline number with no test failing.
+    assert ndcg_at_k([0, 0, 0, 1], k=3) == 0.0
+    assert ndcg_at_k([0, 0, 0, 1], k=4) > 0.0  # same item within k -> now counted
+
+
 def test_mrr_uses_first_relevant_rank():
     assert mrr([0, 0, 1, 1]) == 1.0 / 3
     assert mrr([0, 0, 0]) == 0.0

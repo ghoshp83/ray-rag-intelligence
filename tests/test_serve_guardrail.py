@@ -14,6 +14,7 @@ import json
 import logging
 from unittest.mock import AsyncMock, MagicMock
 
+from ray_rag.models.intent import INTENTS, OUT_OF_SCOPE
 from ray_rag.observability import _JsonFormatter
 from ray_rag.serve.deployments import AskRequest, Generator, Ingress
 
@@ -39,13 +40,20 @@ def _handles(intent: str):
     return retriever, reranker, router, generator
 
 
+def test_guardrail_label_is_the_classifier_constant_not_a_stray_string():
+    # The Serve guardrail and the classifier's vocabulary must name the refusal
+    # label once: if they drifted (a data/code rename of the intent), the guardrail
+    # would silently stop firing and out-of-scope queries would flow to the LLM.
+    assert OUT_OF_SCOPE in INTENTS
+
+
 def test_out_of_scope_query_is_refused_before_retrieval_or_generation():
-    retriever, reranker, router, generator = _handles("out_of_scope")
+    retriever, reranker, router, generator = _handles(OUT_OF_SCOPE)
     ingress = _INGRESS_CLS(retriever, reranker, router, generator)
 
     result = asyncio.run(ingress.ask(AskRequest(query="something the corpus cannot ground")))
 
-    assert result["intent"] == "out_of_scope"
+    assert result["intent"] == OUT_OF_SCOPE
     assert result["sources"] == []
     # The point of the guardrail: no retrieval, no rerank, no LLM call happened.
     assert retriever.retrieve.remote.called is False
@@ -71,7 +79,7 @@ def test_ask_logs_routing_confidence():
     # A misroute is the RUNBOOK's debugging path; the /ask event must carry the
     # router's confidence so a near-miss refusal is distinguishable from a
     # certain one without re-running the query.
-    ingress = _INGRESS_CLS(*_handles("out_of_scope"))
+    ingress = _INGRESS_CLS(*_handles(OUT_OF_SCOPE))
     buf = io.StringIO()
     handler = logging.StreamHandler(buf)
     handler.setFormatter(_JsonFormatter())

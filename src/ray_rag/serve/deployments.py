@@ -18,7 +18,7 @@ from ray import serve
 from ray_rag.config import settings
 from ray_rag.data.embed import Embedder
 from ray_rag.data.index import VectorIndex
-from ray_rag.models.intent import IntentClassifier
+from ray_rag.models.intent import OUT_OF_SCOPE, IntentClassifier
 from ray_rag.models.reranker import Reranker
 from ray_rag.observability import log_event
 from ray_rag.serve.generate import generate_answer
@@ -92,7 +92,7 @@ class Ingress:
     async def ask(self, body: AskRequest) -> dict:
         start = time.perf_counter()
         route = await self._router.route.remote(body.query)
-        if route["intent"] == "out_of_scope":
+        if route["intent"] == OUT_OF_SCOPE:
             log_event(
                 "serve",
                 "ask",

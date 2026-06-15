@@ -11,7 +11,12 @@ from __future__ import annotations
 
 import numpy as np
 
-INTENTS = ("factual", "summarize", "out_of_scope")
+# The label that triggers the Serve guardrail (refuse before any retrieval or
+# generation). Named once here, the classifier's vocabulary, so the serve layer
+# can import it instead of hard-coding the string — a rename then can't silently
+# desync the refusal check from what the classifier actually emits.
+OUT_OF_SCOPE = "out_of_scope"
+INTENTS = ("factual", "summarize", OUT_OF_SCOPE)
 
 
 class IntentClassifier:

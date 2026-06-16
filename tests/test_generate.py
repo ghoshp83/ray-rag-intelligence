@@ -1,12 +1,47 @@
 """The grounding prompt is the contract that keeps the LLM honest; pin it."""
 
-from ray_rag.serve.generate import build_messages, format_passages, generate_answer
+import re
+
+from ray_rag.data.chunk import _chunk_id
+from ray_rag.eval.grounding import extract_citations
+from ray_rag.serve.generate import (
+    INSTRUCTION,
+    build_messages,
+    format_passages,
+    generate_answer,
+)
+
+# The id shown verbatim in INSTRUCTION as the format the model must copy.
+_EXAMPLE_ID = "ray_serve.md#0-ef0e58ff7481"
+# A real chunk id is `doc#idx-hash` with a 12-hex sha1 prefix (data/chunk.py).
+_CHUNK_ID_SHAPE = re.compile(r"^[^#]+#\d+-[0-9a-f]{12}$")
 
 # Real `#idx-hash` chunk ids — the label the model must copy verbatim.
 _PASSAGES = [
     {"chunk_id": "ray_serve.md#0-ef0e58ff7481", "text": "Ray Serve composes models."},
     {"chunk_id": "rag_overview.md#1-8ed05e34c9a0", "text": "Reranking sharpens the top results."},
 ]
+
+
+def test_instruction_example_round_trips_through_the_citation_extractor():
+    # INSTRUCTION teaches the model to copy ids "exactly as shown" via this one
+    # example, and the grounding eval scores answers by extracting bracketed ids.
+    # The two must agree: if the example drifts to a shape extract_citations
+    # won't recover (the historic bug dropped the `-hash` suffix), the model
+    # copies an un-scorable id and grounding silently measures nothing while
+    # every other test stays green. Pin the prompt <-> extractor contract.
+    assert _EXAMPLE_ID in INSTRUCTION
+    assert extract_citations(INSTRUCTION) == [_EXAMPLE_ID]
+
+
+def test_instruction_example_matches_the_real_chunk_id_shape():
+    # The taught example must look like an id data/chunk.py actually mints, not a
+    # simplified placeholder, so what the model copies matches the ids it is given
+    # by format_passages and the ids the index stores.
+    assert _CHUNK_ID_SHAPE.match(_EXAMPLE_ID)
+    assert _CHUNK_ID_SHAPE.match(_chunk_id("ray_serve.md", 0, "some chunk text"))
+    rendered = format_passages([{"chunk_id": _EXAMPLE_ID, "text": "body"}])
+    assert extract_citations(rendered) == [_EXAMPLE_ID]
 
 
 def test_passages_are_labelled_by_citable_id():

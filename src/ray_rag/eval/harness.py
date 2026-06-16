@@ -61,6 +61,15 @@ def evaluate_reranker(index, embedder, reranker, labelled, k) -> dict:
                 "delta": r_ndcg - d_ndcg,
             }
         )
+    if not per_query:
+        # Every labelled query retrieved zero candidates — an empty/misconfigured
+        # index, not a real score. Without this guard np.mean([]) yields nan, the
+        # printed headline reads "nan -> nan", and json.dump writes a bare `NaN`
+        # token (invalid JSON) into the report. Fail loud (Rule 10), like
+        # train_reranker's "need >=2 ... queries" guard.
+        raise ValueError(
+            "no labelled query produced retrieval candidates — is the index empty or misbuilt?"
+        )
     return {
         "dense_ndcg": float(np.mean(dense_ndcg)),
         "reranked_ndcg": float(np.mean(rr_ndcg)),

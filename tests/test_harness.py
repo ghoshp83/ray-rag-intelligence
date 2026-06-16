@@ -9,6 +9,7 @@ spurious win or loss — otherwise the diagnostic would mislabel a parity result
 from __future__ import annotations
 
 import numpy as np
+import pytest
 from sklearn.linear_model import LogisticRegression
 
 from ray_rag.eval.harness import evaluate_intent, evaluate_reranker, uplift_summary
@@ -86,6 +87,16 @@ def test_diagnostic_credits_reranked_order_not_dense_order():
     assert out["reranked_ndcg"] == 1.0  # both queries perfectly ordered after rerank
     assert out["per_query"][0]["delta"] > 0  # q1 lifted
     assert abs(out["per_query"][1]["delta"]) < 1e-9  # q2 unchanged
+
+
+def test_evaluate_reranker_fails_loud_when_no_query_retrieves_candidates():
+    # An empty/misbuilt index makes every query skip the loop; the means would
+    # then be np.mean([]) = nan and the report would persist an invalid `NaN`
+    # JSON token. The harness must raise instead of reporting a nan headline.
+    labelled = [{"query": "q1", "relevant_docs": ["A"]}]
+    empty_index = _FakeIndex([[]])  # search returns no candidates
+    with pytest.raises(ValueError, match="no labelled query produced"):
+        evaluate_reranker(empty_index, _FakeEmbedder(), _FakeReranker([]), labelled, k=5)
 
 
 class _OneHotEmbedder:

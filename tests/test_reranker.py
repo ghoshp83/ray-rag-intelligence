@@ -86,6 +86,23 @@ def test_rerank_empty_candidates_returns_empty():
     assert rr.rerank("q", [], top_k=5) == []
 
 
+def test_rerank_ties_fall_back_to_retrieval_order():
+    # When the learned model cannot separate candidates (equal scores), the stable
+    # sort must keep their incoming dense-retrieval order rather than shuffle them.
+    # This is why reranking never does *worse* than dense on a tie; an unstable
+    # sort would silently break that guarantee.
+    rr = Reranker(_FakeBooster([0.5, 0.5, 0.5]), _FakeExtractor())
+    ranked = rr.rerank("q", _candidates(3), top_k=3)
+    assert [c["chunk_id"] for c in ranked] == ["c0", "c1", "c2"]
+
+
+def test_rerank_breaks_partial_ties_by_retrieval_order():
+    # c1 wins on score; c0 and c2 tie -> they keep dense order (c0 before c2).
+    rr = Reranker(_FakeBooster([0.5, 0.9, 0.5]), _FakeExtractor())
+    ranked = rr.rerank("q", _candidates(3), top_k=3)
+    assert [c["chunk_id"] for c in ranked] == ["c1", "c0", "c2"]
+
+
 # --- Training-data assembly: the rank:ndcg model is only as correct as its labels
 # and per-query groups. A query whose retrieval is empty must be dropped (not
 # emit a zero-length group XGBoost would choke on), labels must mark the relevant

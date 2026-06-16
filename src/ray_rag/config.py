@@ -8,6 +8,7 @@ not silently.
 
 from __future__ import annotations
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -35,6 +36,20 @@ class Settings(BaseSettings):
     eval_train_path: str = "data/eval/relevance_train.jsonl"
     eval_path: str = "data/eval/relevance_test.jsonl"
     intents_path: str = "data/intents/intents.jsonl"
+
+    @model_validator(mode="after")
+    def _check_retrieval_depths(self) -> Settings:
+        # rerank selects its top-k from the retrieved candidates, so asking for
+        # more reranked passages than were retrieved is a misconfiguration: the
+        # pipeline would silently return fewer passages than rerank_top_k claims.
+        # Enforce it at load time (env can override either knob) rather than let a
+        # typo cap retrieval invisibly.
+        if not 1 <= self.rerank_top_k <= self.retrieve_top_k:
+            raise ValueError(
+                f"rerank_top_k ({self.rerank_top_k}) must be in 1..retrieve_top_k "
+                f"({self.retrieve_top_k}); cannot rerank more passages than retrieved"
+            )
+        return self
 
 
 settings = Settings()

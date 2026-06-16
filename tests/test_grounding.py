@@ -71,3 +71,14 @@ def test_uncited_answer_is_flagged():
     s = grounding_score("An answer with no citations at all.", _PROVIDED)
     assert s["has_citation"] is False
     assert s["valid_fraction"] == 1.0  # nothing cited -> nothing invalid
+
+
+def test_no_provided_sources_makes_any_citation_invalid():
+    # If retrieval/rerank surfaced no passages, the model was given nothing to
+    # ground on, so any id it cites is unprovable provenance. has_citation is True
+    # (it claimed a source) but valid_fraction must be 0.0 — never the vacuous 1.0
+    # the uncited case returns, which would read an empty-context answer as grounded.
+    s = grounding_score("Claims a source [a.md#0-aaaaaaaaaaaa].", [])
+    assert s["has_citation"] is True
+    assert s["n_citations"] == 1
+    assert s["valid_fraction"] == 0.0

@@ -18,7 +18,14 @@ from ray_rag.models.features import FEATURE_NAMES, FeatureExtractor
 def _mean_ndcg(preds: np.ndarray, labels: np.ndarray, groups: list[int], k: int) -> float:
     ndcgs, start = [], 0
     for g in groups:
-        order = np.argsort(-preds[start : start + g])
+        # Stable sort so tied predictions keep their incoming (retrieval) order —
+        # the same tie-break `Reranker.rerank` uses at serve time (its stable
+        # `sorted(reverse=True)`). np.argsort defaults to quicksort, which reorders
+        # ties arbitrarily, so without `kind="stable"` the nDCG this Tune trial
+        # maximises (and reports as val_ndcg) would score ties differently from the
+        # order production actually serves — optimising a metric the deployed model
+        # can't reproduce.
+        order = np.argsort(-preds[start : start + g], kind="stable")
         ranked = [float(labels[start : start + g][i]) for i in order]
         ndcgs.append(ndcg_at_k(ranked, k))
         start += g

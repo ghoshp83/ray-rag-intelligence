@@ -34,6 +34,18 @@ def test_mean_ndcg_penalises_relevant_ranked_last():
     assert math.isclose(_mean_ndcg(preds, labels, groups=[3], k=5), 1.0 / math.log2(4))
 
 
+def test_mean_ndcg_breaks_ties_in_retrieval_order():
+    # The relevant doc sits at retrieval position 1, tied (pred 0.5) with the rest;
+    # one other candidate (position 5) outscores them. A stable sort keeps the tied
+    # block in retrieval order -> the relevant doc lands at rank 3 (nDCG 1/log2(4) =
+    # 0.5). np.argsort's default quicksort would shuffle the tie, dropping it to rank
+    # 4 (~0.431) and making this Tune objective disagree with the stable tie-break
+    # Reranker.rerank serves. Pin retrieval-order ties so the two cannot diverge.
+    preds = np.array([0.5, 0.5, 0.5, 0.5, 0.5, 0.9, 0.5, 0.5])
+    labels = np.array([0, 1, 0, 0, 0, 0, 0, 0])
+    assert math.isclose(_mean_ndcg(preds, labels, groups=[8], k=5), 0.5)
+
+
 def test_mean_ndcg_averages_across_groups():
     # Two queries concatenated: first perfect (1.0), second worst (1/log2 4).
     preds = np.array([0.9, 0.1, 0.1, 0.9])

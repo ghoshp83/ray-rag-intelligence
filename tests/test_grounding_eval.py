@@ -8,6 +8,8 @@ metric still needs ANTHROPIC_API_KEY (harness `main()`), and that skip stays lou
 
 from __future__ import annotations
 
+import pytest
+
 from ray_rag.eval.harness import evaluate_grounding
 
 
@@ -61,3 +63,13 @@ def test_grounding_scored_against_reranked_ids_not_retrieved_candidates():
     assert out["mean_valid_citation_fraction"] == 0.5
     assert out["answers_with_citation"] == 1.0
     assert out["n_queries"] == 1
+
+
+def test_empty_eval_set_fails_loud_not_nan():
+    # An empty labelled set would make np.mean([]) = nan and persist a bare `NaN`
+    # token into a billed LLM-eval report. The grounding eval must raise instead
+    # of reporting a silent nan, like evaluate_reranker's empty guard.
+    with pytest.raises(ValueError, match="no queries to score grounding"):
+        evaluate_grounding(
+            _FakeIndex(), _FakeEmbedder(), _TopOneReranker(), [], client=_FakeClient("")
+        )

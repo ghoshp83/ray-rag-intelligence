@@ -141,6 +141,12 @@ def evaluate_grounding(index, embedder, reranker, labelled, client=None) -> dict
         passages = reranker.rerank(ex["query"], candidates, settings.rerank_top_k)
         answer = generate_answer(client, settings.llm_model, ex["query"], passages)
         scores.append(grounding_score(answer, [p["chunk_id"] for p in passages]))
+    if not scores:
+        # No queries to score — an empty eval set, not a real grounding result.
+        # Without this guard np.mean([]) is nan and the report persists a bare
+        # `NaN` token, so a billed LLM eval run would read as a silent nan. Fail
+        # loud (Rule 10), like evaluate_reranker's empty-candidates guard.
+        raise ValueError("no queries to score grounding on — is the eval set empty?")
     return {
         "mean_valid_citation_fraction": float(np.mean([s["valid_fraction"] for s in scores])),
         "answers_with_citation": float(np.mean([s["has_citation"] for s in scores])),

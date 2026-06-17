@@ -36,8 +36,17 @@ def main() -> None:
         index = build_corpus_index(settings.corpus_path, settings.embed_model, settings.index_path)
     embedder = Embedder(settings.embed_model)
 
+    # Retrieve the same candidate depth the eval harness and Serve graph use, so
+    # the ranker trains on the candidate set it will actually reorder in
+    # production. (Behaviour-neutral on the bundled corpus, where FAISS returns
+    # every chunk for either depth; it stops the training/serving depth from
+    # drifting once the corpus grows past retrieve_top_k.)
     rr = train_reranker(
-        index, embedder, load_jsonl(settings.eval_train_path), settings.reranker_path
+        index,
+        embedder,
+        load_jsonl(settings.eval_train_path),
+        settings.reranker_path,
+        retrieve_n=settings.retrieve_top_k,
     )
     ic = train_intent(load_jsonl(settings.intents_path), embedder, settings.intent_path)
 

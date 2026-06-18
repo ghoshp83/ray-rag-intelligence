@@ -59,11 +59,14 @@ scale-out target (`deploy/`), not used at this data scale — see the disclaimer
 > Requires Docker. CPU-only; no GPU needed. Python 3.10.
 
 ```bash
-cp .env.example .env          # add your ANTHROPIC_API_KEY
-docker compose up -d          # local Ray head + worker cluster
-# ingest + embed the sample corpus, train the models, then serve:
-make ingest && make train && make serve
-# ask a question:
+cp .env.example .env                       # add your ANTHROPIC_API_KEY
+make up                                    # build + start the local Ray head + worker
+# run inside the head so the steps join the cluster (artifacts are shared to the
+# worker via a named volume — see docker-compose.yml):
+docker compose exec ray-head make ingest   # chunk + embed the corpus into a FAISS index
+docker compose exec ray-head make train    # tune + fit the reranker and intent classifier
+docker compose exec ray-head make serve    # start the Serve graph on :8000 (foreground)
+# from another shell, ask a question:
 curl -s localhost:8000/ask -d '{"query": "..."}' | jq
 ```
 

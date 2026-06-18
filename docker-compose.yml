@@ -16,6 +16,7 @@ services:
   ray-worker:
     build: .
     shm_size: "2gb"
+    env_file: .env           # a Generator replica may schedule here -> needs ANTHROPIC_API_KEY
     depends_on:
       - ray-head
     volumes:

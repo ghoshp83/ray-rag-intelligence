@@ -1,0 +1,40 @@
+# Keep the Docker build context small and free of host-only / internal files.
+# The Dockerfile copies only pyproject.toml, README.md, src/, and data/; without
+# this file the daemon still uploads everything below as build context — most of
+# all the multi-GB local virtualenv — slowing every `docker compose up --build`.
+# It is also defence-in-depth for Hard Rules 3 & 7: internal docs and any secret
+# can never enter an image layer if they never enter the context.
+
+# Local virtualenv (multi-GB) and Python caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# VCS + runtime artifacts (models/indexes are built inside the container)
+.git/
+.gitignore
+artifacts/
+checkpoints/
+mlruns/
+ray_results/
+*.log
+
+# Secrets / env (never in an image)
+.env
+.env.local
+*.key
+*.pem
+
+# Internal / workspace-only (Hard Rule 3) — never ship in an image either
+CLAUDE.md
+.claude/
+docs/
+promo/
+tests/
+build/
+dist/

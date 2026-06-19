@@ -2,7 +2,16 @@ name: ci
 
 on:
   push:
+    branches: [main]
   pull_request:
+
+# A branch's PR already runs CI on its `pull_request` event; without scoping
+# `push` to main, every push to a PR branch ran the suite twice. Cancel a
+# superseded run when a newer commit lands on the same ref so rapid pushes don't
+# queue redundant work.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:

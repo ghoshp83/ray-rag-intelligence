@@ -65,6 +65,7 @@ make up                                    # build + start the local Ray head + 
 # worker via a named volume — see docker-compose.yml):
 docker compose exec ray-head make ingest   # chunk + embed the corpus into a FAISS index
 docker compose exec ray-head make train    # tune + fit the reranker and intent classifier
+docker compose exec ray-head make eval     # print recall@k, nDCG/MRR, intent F1 (grounding needs the key)
 docker compose exec ray-head make serve    # start the Serve graph on :8000 (foreground)
 # from another shell, ask a question:
 curl -s localhost:8000/ask -H 'Content-Type: application/json' \

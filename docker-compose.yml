@@ -12,13 +12,22 @@ services:
     volumes:
       - artifacts:/app/artifacts   # index + trained models, shared with the worker
     command: ray start --head --dashboard-host 0.0.0.0 --port 6379 --block
+    healthcheck:                 # GCS reachable before the worker tries to join
+      test: ["CMD", "ray", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   ray-worker:
     build: .
     shm_size: "2gb"
     env_file: .env           # a Generator replica may schedule here -> needs ANTHROPIC_API_KEY
     depends_on:
-      - ray-head
+      ray-head:
+        condition: service_healthy   # plain depends_on only waits for the container to
+                                      # start, not for GCS on :6379 to accept the worker's
+                                      # `--address=ray-head:6379` join (it would race + error)
     volumes:
       - artifacts:/app/artifacts   # same volume: Serve replicas here load the same models
     command: ray start --address=ray-head:6379 --block

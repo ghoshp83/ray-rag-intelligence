@@ -1,5 +1,8 @@
 # ray-rag-intelligence
 
+[![CI](https://github.com/ghoshp83/ray-rag-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/ghoshp83/ray-rag-intelligence/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 **A distributed RAG document-intelligence platform on Ray — trained ML owns retrieval ranking and query routing; the LLM only writes citation-grounded answers. One codebase, laptop to cluster.**
 
 Ask a question over a document corpus and get back an answer where **every claim

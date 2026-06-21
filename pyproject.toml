@@ -21,6 +21,10 @@ dependencies = [
     "fastapi>=0.111",
 ]
 
+[project.urls]
+Homepage = "https://github.com/ghoshp83/ray-rag-intelligence"
+Repository = "https://github.com/ghoshp83/ray-rag-intelligence"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.2",

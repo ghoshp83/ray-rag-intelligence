@@ -115,6 +115,21 @@ methodology is the point: a reranker we train ourselves, scored on unseen querie
 with nDCG/MRR, so its quality is a number that moves with training rather than a
 black box.
 
+**Generation grounding (citation-faithfulness).** When `ANTHROPIC_API_KEY` is set,
+`make eval` also scores the LLM's answers over the 30 held-out queries — every
+answer cited **only** chunk ids it was actually given:
+
+| Generation metric (n=30) | claude-opus-4-8 | claude-haiku-4-5 |
+|--------|--------|--------|
+| Valid-citation fraction | 1.000 | 1.000 |
+| Answers with a citation | 1.000 | 1.000 |
+
+On a corpus this small, grounding sits at ceiling — the point is that it is
+*measured*, not assumed: an answer that cites a source it was never given counts
+against `valid_fraction`, so the number drops the moment the model invents
+provenance. This is the anti-fake-AI guarantee made quantitative — the LLM writes
+fluent prose but cannot fabricate a citation without it showing up here.
+
 > Earlier revisions of this README reported held-out *parity* (nDCG@5
 > 0.879→0.854) on a 10-doc, topically-distinct corpus where dense retrieval was
 > already near-ceiling with nothing for the reranker to fix. Adding hard negatives

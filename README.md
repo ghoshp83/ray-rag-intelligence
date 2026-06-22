@@ -104,6 +104,8 @@ curl -s localhost:8000/ask -H 'Content-Type: application/json' \
 `make ingest` builds the FAISS index from the corpus, `make train` tunes + fits
 the reranker and intent classifier (saved under `artifacts/`, gitignored), and
 `make serve` starts the deployment graph. `make eval` prints the metrics below.
+To reproduce the operational numbers yourself, `make bench` measures the Ray Data
+embedding throughput and `make latency` times the per-stage request path.
 See [RUNBOOK.md](RUNBOOK.md) for startup order and failure handling.
 
 ## Why this stack

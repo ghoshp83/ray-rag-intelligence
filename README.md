@@ -245,6 +245,11 @@ up) covers cluster-level resource and task observability.
   the documented scale-out for larger data, where data-parallel training earns its
   place. Using it here would add complexity without benefit.
 
+## Contributing
+
+Dev setup, the lint/type/test gate, and the code conventions are in
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

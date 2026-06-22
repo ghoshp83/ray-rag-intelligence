@@ -59,7 +59,29 @@ scale-out target (`deploy/`), not used at this data scale — see the disclaimer
 
 ## Run it locally
 
-> Requires Docker. CPU-only; no GPU needed. Python 3.10.
+CPU-only; no GPU needed. Python 3.10. Two ways to run it: **directly** on your
+machine (Ray runs in-process — quickest for trying it, the eval, and the tests),
+or as a **real head+worker Ray cluster in Docker** (the distributed/portability
+story — the *same code*).
+
+### Directly (no Docker)
+
+```bash
+pip install -e ".[dev]"                    # or: uv pip install -e ".[dev]"
+cp .env.example .env                       # add your ANTHROPIC_API_KEY
+make ingest                                # chunk + embed the corpus into a FAISS index
+make train                                 # tune + fit the reranker and intent classifier
+set -a; . ./.env; set +a                   # export the key so the grounding eval sees it
+make eval                                  # recall@k, nDCG/MRR, intent F1, grounding
+make test                                  # unit + e2e smoke suite
+make serve                                 # Serve graph on :8000 (foreground)
+```
+
+`.env` only autoloads inside the Docker path (compose reads it); when running
+directly, `set -a; . ./.env; set +a` exports `ANTHROPIC_API_KEY` so the Anthropic
+SDK finds it (otherwise `make eval` correctly *skips* grounding rather than fail).
+
+### As a local Ray cluster (Docker)
 
 ```bash
 cp .env.example .env                       # add your ANTHROPIC_API_KEY
@@ -68,9 +90,13 @@ make up                                    # build + start the local Ray head + 
 # worker via a named volume — see docker-compose.yml):
 docker compose exec ray-head make ingest   # chunk + embed the corpus into a FAISS index
 docker compose exec ray-head make train    # tune + fit the reranker and intent classifier
-docker compose exec ray-head make eval     # print recall@k, nDCG/MRR, intent F1 (grounding needs the key)
+docker compose exec ray-head make eval     # recall@k, nDCG/MRR, intent F1 (grounding needs the key)
 docker compose exec ray-head make serve    # start the Serve graph on :8000 (foreground)
-# from another shell, ask a question:
+```
+
+Either way, once `make serve` is up, ask a question from another shell:
+
+```bash
 curl -s localhost:8000/ask -H 'Content-Type: application/json' \
   -d '{"query": "How does Ray Serve scale a deployment?"}' | jq
 ```
